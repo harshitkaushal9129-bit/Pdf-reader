@@ -3,42 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNT Vault</title>
+    <title>SNT Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; padding: 20px; }
-        .hidden { display: none; }
-        .pdf-card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
-    </style>
 </head>
-<body>
+<body class="bg-slate-900 text-white p-6">
 
-    <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-2xl w-full max-w-sm text-black">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Student Login</h2>
-            <input type="text" id="user" placeholder="Username" class="w-full p-3 border rounded-xl mb-4 outline-none">
-            <input type="password" id="pass" placeholder="Password" class="w-full p-3 border rounded-xl mb-6 outline-none">
-            <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Login</button>
-        </div>
-    </div>
-
-    <div id="dashboard" class="hidden max-w-5xl mx-auto">
-        <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
-            <h1 class="text-xl font-bold text-sky-400">SNT VAULT</h1>
-            <div class="bg-sky-500/20 px-4 py-1 rounded-full text-xs font-bold">
-                Downloads Left: <span id="credit-count">5</span>
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-black text-indigo-500">SNT VAULT</h1>
+            <div class="bg-indigo-500/20 text-indigo-400 px-4 py-1 rounded-full text-xs font-bold border border-indigo-500/30">
+                Limit: <span id="credits">5</span> Left
             </div>
         </header>
 
-        <div id="pdf-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        <div id="pdf-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <p>Loading files...</p>
+        </div>
     </div>
 
     <div id="pay-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50">
         <div class="bg-white text-black p-8 rounded-3xl text-center max-w-xs w-full">
-            <h3 class="font-bold text-lg mb-4">Limit Reached!</h3>
-            <img id="qr-code" src="" class="mx-auto mb-4">
-            <p class="text-[10px] text-gray-500 mb-4 font-bold">Pay ₹100 for Unlimited Access</p>
-            <button onclick="addCredits()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">I have paid</button>
+            <h3 class="font-bold text-lg mb-4">Download Limit Reached!</h3>
+            <img id="qr" src="" class="mx-auto mb-4 border p-2">
+            <p class="text-[10px] text-gray-500 mb-4">Pay ₹100 for Unlimited Access</p>
+            <button onclick="addCredits()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">I Have Paid</button>
+            <button onclick="location.reload()" class="text-gray-400 text-xs mt-4">Close</button>
         </div>
     </div>
 
@@ -47,63 +36,51 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAOQtM_XYLqPgxMK1XBdfl0m7KoAseZRCA",
-            authDomain: "snt-computer-institute.firebaseapp.com",
-            databaseURL: "https://snt-computer-institute-default-rtdb.firebaseio.com",
-            projectId: "snt-computer-institute",
-            storageBucket: "snt-computer-institute.firebasestorage.app",
-            messagingSenderId: "117580784781",
-            appId: "1:117580784781:web:73ba19d2d008beb3a5eec4"
+            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
+            authDomain: "pdf-reader-650f5.firebaseapp.com",
+            projectId: "pdf-reader-650f5",
+            storageBucket: "pdf-reader-650f5.firebasestorage.app",
+            messagingSenderId: "163058397387",
+            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let limit = 5;
 
-        let credits = 5;
-
-        function login() {
-            if(document.getElementById('user').value) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                loadData();
-            }
-        }
-
-        function loadData() {
-            db.ref('myPDFs').on('value', snap => {
-                const list = document.getElementById('pdf-list');
-                list.innerHTML = '';
-                snap.forEach(child => {
-                    const pdf = child.val();
-                    list.innerHTML += `
-                        <div class="pdf-card">
-                            <h3 class="font-bold truncate">${pdf.name}</h3>
-                            <p class="text-xs text-gray-400 my-2">${pdf.category}</p>
-                            <button onclick="downloadPDF('${pdf.pdf}')" class="w-full bg-sky-500 text-slate-900 py-2 rounded-lg font-bold mt-2">Download</button>
-                        </div>`;
-                });
+        // Load PDFs
+        db.ref('allPDFs').on('value', snap => {
+            const grid = document.getElementById('pdf-grid');
+            grid.innerHTML = '';
+            snap.forEach(child => {
+                const pdf = child.val();
+                grid.innerHTML += `
+                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                        <h3 class="font-bold text-lg mb-4 truncate">${pdf.name}</h3>
+                        <button onclick="downloadPDF('${pdf.pdfData}')" class="w-full bg-indigo-600 py-3 rounded-xl font-bold">DOWNLOAD</button>
+                    </div>`;
             });
-        }
+        });
 
-        function downloadPDF(base64) {
-            if(credits > 0) {
-                credits--;
-                document.getElementById('credit-count').innerText = credits;
+        function downloadPDF(data) {
+            if(limit > 0) {
+                limit--;
+                document.getElementById('credits').innerText = limit;
                 const a = document.createElement('a');
-                a.href = base64;
-                a.download = "Notes_SNT.pdf";
+                a.href = data;
+                a.download = "Notes.pdf";
                 a.click();
             } else {
                 const upi = "mandavikaushal913@okaxis";
-                document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${upi}&am=100`;
+                document.getElementById('qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${upi}&am=100`;
                 document.getElementById('pay-modal').classList.remove('hidden');
             }
         }
 
         function addCredits() {
-            credits += 50;
-            document.getElementById('credit-count').innerText = credits;
+            limit += 50;
+            document.getElementById('credits').innerText = limit;
             document.getElementById('pay-modal').classList.add('hidden');
-            alert("Credits updated!");
+            alert("50 Credits Added!");
         }
     </script>
 </body>
