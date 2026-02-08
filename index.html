@@ -97,6 +97,12 @@
                     <button onclick="processUPI()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all">PAY & GET LIMIT</button>
                 </div>
 
+                <div class="mt-6">
+                    <button onclick="shareApp()" class="w-full bg-slate-800/80 text-white border border-white/10 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+                        <i class="fas fa-share-alt text-sky-400"></i> SHARE APP WITH FRIENDS
+                    </button>
+                </div>
+
                 <div class="mt-8 border-t border-white/5 pt-6">
                     <p class="text-[10px] text-slate-500 font-black uppercase mb-4 tracking-tighter">Support</p>
                     <div class="flex gap-4">
@@ -142,17 +148,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-
-
-
         if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service Worker Registered!', reg))
-            .catch(err => console.log('Service Worker Failed!', err));
-    });
-}
-            </script>
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Registered!', reg))
+                    .catch(err => console.log('Service Worker Failed!', err));
+            });
+        }
+    </script>
     <script>
         // --- 1. Firebase Configuration ---
         const firebaseConfig = {
@@ -186,13 +189,11 @@
                 document.getElementById('user-name').innerText = user.displayName;
                 document.getElementById('user-email').innerText = user.email;
 
-                // Real-time Data Sync
                 db.ref('students/' + user.uid).on('value', (snap) => {
                     const data = snap.val();
                     if (data) {
                         userData = data;
                     } else {
-                        // Create user if doesn't exist
                         userData = { views: 0, limit: 5 };
                         db.ref('students/' + user.uid).set(userData);
                     }
@@ -243,7 +244,6 @@
                 return;
             }
 
-            // Update View Count
             db.ref('students/' + auth.currentUser.uid).update({ views: currentViews + 1 });
 
             try {
@@ -287,7 +287,6 @@
             const name = "SNT Vault";
             const upiUrl = `upi://pay?pa=${upiID}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`;
 
-            // Display QR Modal
             const qrContainer = document.getElementById('qr-container');
             const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
             
@@ -301,7 +300,24 @@
             document.getElementById('qr-modal').style.display = 'none';
         }
 
-        // --- 5. Navigation ---
+        // --- 5. Share Function ---
+        function shareApp() {
+            const shareData = {
+                title: 'PDF Vault Pro',
+                text: 'Download premium notes and PDFs easily!',
+                url: window.location.href
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).catch((err) => console.log('Share error', err));
+            } else {
+                // Fallback for browsers that don't support native share
+                navigator.clipboard.writeText(window.location.href);
+                alert("App link copied to clipboard!");
+            }
+        }
+
+        // --- 6. Navigation ---
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -309,7 +325,7 @@
             el.classList.add('active');
         }
 
-        // --- 6. Security & PWA ---
+        // --- 7. Security & PWA ---
         document.onkeydown = (e) => {
             if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
         };
