@@ -1,18 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Realtime PDF Viewer</title>
+    <meta charset="UTF-8">
+    <title>PDF Dash - Viewer</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 100vh; border: none; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #2c3e50; font-family: sans-serif; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: -1; }
+        iframe { width: 100%; height: 100vh; border: none; display: none; }
+        .badge { background: #4CAF50; padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="msg" style="text-align:center; margin-top:20px;">Waiting for PDF from Database...</div>
-    <iframe id="viewer"></iframe>
+    <div id="waiting" class="overlay">
+        <div class="badge">Live Connection Active</div>
+        <h2>Waiting for PDF stream...</h2>
+        <p style="opacity: 0.5;">Upload a file from the other tab.</p>
+    </div>
+
+    <iframe id="pdfFrame"></iframe>
 
     <script>
         const firebaseConfig = {
@@ -26,12 +34,17 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Database ko monitor karein
-        database.ref('sharedPDF').on('value', (snapshot) => {
+        const frame = document.getElementById('pdfFrame');
+        const waiting = document.getElementById('waiting');
+
+        // Listen for changes in Realtime Database
+        database.ref('livePDF').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data && data.pdfData) {
-                document.getElementById('msg').style.display = 'none';
-                document.getElementById('viewer').src = data.pdfData;
+                frame.src = data.pdfData;
+                frame.style.display = "block";
+                waiting.style.display = "none";
+                console.log("PDF received at: " + data.time);
             }
         });
     </script>
