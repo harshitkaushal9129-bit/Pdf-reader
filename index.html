@@ -15,33 +15,19 @@
     
     <style>
         :root { --primary: #38bdf8; --bg: #0f172a; }
-        
-        /* Security: Text selection block */
         * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
-        
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; margin: 0; overflow-x: hidden; }
-        
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        
         .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; transition: 0.3s; }
-        
         .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        
         .btn-download { width: 100%; background: transparent; color: var(--primary); border: 1px solid var(--primary); font-weight: 600; padding: 10px; border-radius: 12px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
-        
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-        
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        
         .nav-item.active { color: var(--primary); }
-        
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .login-logo { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); padding: 5px; margin: 0 auto 20px auto; object-fit: cover; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); background: #1e293b; }
-        
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
@@ -60,7 +46,6 @@
     </div>
 
     <div id="dashboard" class="hidden">
-        
         <main id="home-tab" class="tab-content active max-w-4xl mx-auto p-5 pb-32">
             <header class="flex justify-between items-center py-6">
                 <div>
@@ -71,9 +56,7 @@
                     <i class="fas fa-download"></i>
                 </button>
             </header>
-            
-            <div id="pdf-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                </div>
+            <div id="pdf-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-5"></div>
         </main>
 
         <main id="profile-tab" class="tab-content max-w-4xl mx-auto p-6 pb-32">
@@ -95,24 +78,27 @@
 
                 <div class="mt-8 bg-sky-500/5 p-6 rounded-[30px] border border-sky-500/20">
                     <h3 class="text-xs font-black text-sky-400 mb-4 tracking-widest">RECHARGE PDF LIMIT</h3>
-                    <input type="number" id="pay-amount" placeholder="Enter Amount (₹)" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-4 text-center font-bold text-sky-400 mb-4 focus:outline-none focus:border-sky-500 shadow-inner">
+                    <input type="number" id="pay-amount" placeholder="Enter Amount (₹)" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-4 text-center font-bold text-sky-400 mb-4 focus:outline-none focus:border-sky-500">
                     <button onclick="processUPI()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all">PAY & GET LIMIT</button>
-                    <div class="flex justify-around mt-4 text-[8px] text-slate-500 font-bold uppercase">
-                        <span>₹10 = 10 PDF</span>
-                        <span>₹35 = 40 PDF</span>
-                        <span>₹50 = 60 PDF</span>
-                    </div>
                 </div>
+
+                <button onclick="shareApp()" class="mt-6 w-full bg-slate-800 text-white py-4 rounded-2xl text-xs font-bold border border-white/5 flex items-center justify-center gap-2">
+                    <i class="fas fa-share-alt text-sky-400"></i> SHARE APP WITH FRIENDS
+                </button>
 
                 <div class="mt-8 border-t border-white/5 pt-6">
-                    <p class="text-[10px] text-slate-500 font-black uppercase mb-4 tracking-tighter">Developer Support (Call/WhatsApp)</p>
+                    <p class="text-[10px] text-slate-500 font-black uppercase mb-4 tracking-tighter">Developer Support</p>
                     <div class="flex gap-4">
-                        <a href="tel:+919129191898" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl text-xs font-bold border border-white/5 shadow-lg"><i class="fas fa-phone-alt mr-2 text-sky-400"></i> Call</a>
-                        <a href="https://wa.me/919129191898" class="flex-1 bg-green-600/10 text-green-400 py-4 rounded-2xl text-xs font-bold border border-green-500/20 shadow-lg"><i class="fab fa-whatsapp mr-2"></i> WhatsApp</a>
+                        <a href="tel:+919129191898" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl text-xs font-bold border border-white/5 shadow-lg flex items-center justify-center gap-2">
+                            <i class="fas fa-phone-alt text-sky-400"></i> Call
+                        </a>
+                        <a href="https://wa.me/919129191898" class="flex-1 bg-green-600/10 text-green-400 py-4 rounded-2xl text-xs font-bold border border-green-500/20 shadow-lg flex items-center justify-center gap-2">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
                     </div>
                 </div>
 
-                <button onclick="logout()" class="mt-10 text-red-500/50 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-red-500 transition-colors">Logout Session</button>
+                <button onclick="logout()" class="mt-10 text-red-500/50 text-[10px] font-bold uppercase tracking-[0.2em]">Logout Session</button>
             </div>
         </main>
 
@@ -127,52 +113,19 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-
-        // --- SERVICE WORKER REGISTRATION LOGIC ---
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(registration => {
-                console.log('SW Registered with scope:', registration.scope);
-            })
-            .catch(err => {
-                console.log('SW Registration failed:', err);
+        // --- 1. SW Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
             });
-    });
-}
+        }
 
-// PWA Install Prompt Logic
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // Install button dikhane ke liye
-    const installBtn = document.getElementById('install-btn');
-    if (installBtn) installBtn.classList.remove('hidden');
-});
-
-function installApp() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-            }
-            deferredPrompt = null;
-            document.getElementById('install-btn').classList.add('hidden');
-        });
-    }
-}
-    </script>
-    <script>// --- A. SECURITY: Block Developer Tools ---
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) return false; // F12
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Inspect
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Element Select
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // View Source
+        // --- 2. Security ---
+        document.onkeydown = (e) => {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
         };
 
-        // --- B. FIREBASE CONFIGURATION ---
+        // --- 3. Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
@@ -186,10 +139,10 @@ function installApp() {
 
         let userData = { views: 0, limit: 5 };
 
-        // --- C. AUTHENTICATION ---
+        // --- 4. Auth Logic ---
         function googleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider);
+            auth.signInWithPopup(provider).catch(err => alert("Login Error: " + err.message));
         }
         function logout() { auth.signOut().then(() => location.reload()); }
 
@@ -201,7 +154,6 @@ function installApp() {
                 document.getElementById('user-name').innerText = user.displayName;
                 document.getElementById('user-email').innerText = user.email;
 
-                // Sync data from Firebase
                 db.ref('students/' + user.uid).on('value', (snap) => {
                     userData = snap.val() || { views: 0, limit: 5 };
                     document.getElementById('used-count').innerText = userData.views;
@@ -211,7 +163,7 @@ function installApp() {
             }
         });
 
-        // --- D. PDF GRID & ACTION LOGIC ---
+        // --- 5. PDF & Actions ---
         function loadPDFs() {
             db.ref('myPDFs').on('value', (snap) => {
                 const grid = document.getElementById('pdf-grid');
@@ -221,18 +173,10 @@ function installApp() {
                     const div = document.createElement('div');
                     div.className = 'pdf-card';
                     div.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-[9px] font-bold bg-sky-500/10 text-sky-400 px-2 py-1 rounded uppercase tracking-tighter">${pdf.category || 'General'}</span>
-                            <i class="fas fa-file-pdf text-red-500 text-xl"></i>
-                        </div>
+                        <div class="flex justify-between items-start mb-4"><span class="text-[9px] font-bold bg-sky-500/10 text-sky-400 px-2 py-1 rounded uppercase">${pdf.category || 'General'}</span><i class="fas fa-file-pdf text-red-500 text-xl"></i></div>
                         <h3 class="font-bold text-sm truncate mb-1">${pdf.name}</h3>
-                        <p class="text-[10px] text-slate-500 mb-4">Premium Study Materials</p>
-                        <button onclick="handleAction('${pdf.pdf}', 'view')" class="btn-view">
-                            <i class="fas fa-eye"></i> VIEW NOTES
-                        </button>
-                        <button onclick="handleAction('${pdf.pdf}', 'download', '${pdf.name}')" class="btn-download">
-                            <i class="fas fa-download"></i> DOWNLOAD
-                        </button>
+                        <button onclick="handleAction('${pdf.pdf}', 'view')" class="btn-view"><i class="fas fa-eye"></i> VIEW NOTES</button>
+                        <button onclick="handleAction('${pdf.pdf}', 'download', '${pdf.name}')" class="btn-download"><i class="fas fa-download"></i> DOWNLOAD</button>
                     `;
                     grid.appendChild(div);
                 });
@@ -241,29 +185,19 @@ function installApp() {
 
         function handleAction(base64, mode, fileName = "Notes") {
             if (userData.views >= userData.limit) {
-                alert("Limit khatam ho gayi hai! Profile mein jaakar recharge karein.");
+                alert("Limit khatam! Recharge karein.");
                 switchTab('profile-tab', document.querySelectorAll('.nav-item')[1]);
                 return;
             }
-
-            // Increment Counter in Database
-            db.ref('students/' + auth.currentUser.uid).update({ 
-                views: userData.views + 1 
-            });
-
+            db.ref('students/' + auth.currentUser.uid).update({ views: userData.views + 1 });
             const blob = base64ToBlob(base64);
             const url = URL.createObjectURL(blob);
-
             if (mode === 'view') {
                 const win = window.open();
                 win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
             } else {
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = fileName + ".pdf";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const link = document.createElement('a'); link.href = url; link.download = fileName + ".pdf";
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
             }
         }
 
@@ -271,20 +205,25 @@ function installApp() {
             const parts = base64.split(';base64,');
             const contentType = parts[0].split(':')[1];
             const raw = window.atob(parts[1]);
-            const rawLength = raw.length;
-            const uInt8Array = new Uint8Array(rawLength);
-            for (let i = 0; i < rawLength; ++i) { uInt8Array[i] = raw.charCodeAt(i); }
+            const uInt8Array = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) uInt8Array[i] = raw.charCodeAt(i);
             return new Blob([uInt8Array], { type: contentType });
         }
 
-        // --- E. PAYMENT & UI ---
+        // --- 6. Payment & Social ---
         function processUPI() {
             const amount = document.getElementById('pay-amount').value;
-            if (!amount || amount < 1) { alert("Sahi amount bharein."); return; }
+            if (!amount || amount < 1) return alert("Sahi amount bharein.");
             window.location.href = `upi://pay?pa=mandavikaushal913@okaxis&pn=SNT%20Vault&am=${amount}&cu=INR`;
-            setTimeout(() => {
-                alert("Payment ke baad screenshot +91 9129191898 par WhatsApp karein.");
-            }, 2000);
+            alert("Payment ke baad screenshot +91 9129191898 par bhejein.");
+        }
+
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({ title: 'PDF Vault Pro', text: 'Best PDF Notes App! Download now.', url: window.location.href });
+            } else {
+                alert("Link copied: " + window.location.href);
+            }
         }
 
         function switchTab(tabId, el) {
@@ -294,16 +233,16 @@ function installApp() {
             el.classList.add('active');
         }
 
-        // PWA Setup
-        let deferredPrompt;
+        // PWA Install
+        let defPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
+            e.preventDefault(); defPrompt = e;
             document.getElementById('install-btn').classList.remove('hidden');
         });
         function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(() => document.getElementById('install-btn').classList.add('hidden'));
+            if (defPrompt) {
+                defPrompt.prompt();
+                defPrompt.userChoice.then(() => document.getElementById('install-btn').classList.add('hidden'));
             }
         }
     </script>
