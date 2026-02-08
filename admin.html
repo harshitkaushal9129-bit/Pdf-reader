@@ -2,25 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PDF Dash - Viewer</title>
+    <title>Admin - Send PDF</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #2c3e50; font-family: sans-serif; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; z-index: -1; }
-        iframe { width: 100%; height: 100vh; border: none; display: none; }
-        .badge { background: #4CAF50; padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
+        body { font-family: sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 30px; border-radius: 12px; shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; border: 1px solid #ddd; }
+        input { margin: 20px 0; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        #status { font-size: 13px; color: #555; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="waiting" class="overlay">
-        <div class="badge">Live Connection Active</div>
-        <h2>Waiting for PDF stream...</h2>
-        <p style="opacity: 0.5;">Upload a file from the other tab.</p>
+    <div class="box">
+        <h2>Admin Panel</h2>
+        <p>PDF select karke index.html par bhejein</p>
+        <input type="file" id="pdfInput" accept="application/pdf"><br>
+        <button onclick="sendData()">Submit / Send Live</button>
+        <p id="status"></p>
     </div>
-
-    <iframe id="pdfFrame"></iframe>
 
     <script>
         const firebaseConfig = {
@@ -34,19 +35,26 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        const frame = document.getElementById('pdfFrame');
-        const waiting = document.getElementById('waiting');
+        function sendData() {
+            const file = document.getElementById('pdfInput').files[0];
+            const status = document.getElementById('status');
 
-        // Listen for changes in Realtime Database
-        database.ref('livePDF').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.pdfData) {
-                frame.src = data.pdfData;
-                frame.style.display = "block";
-                waiting.style.display = "none";
-                console.log("PDF received at: " + data.time);
-            }
-        });
+            if (!file) return alert("File chuno!");
+
+            const reader = new FileReader();
+            status.innerText = "Sending to Firebase...";
+
+            reader.onload = function(e) {
+                // Ye data Firebase Realtime Database mein store ho raha hai
+                database.ref('livePDF').set({
+                    pdfData: e.target.result,
+                    time: new Date().toLocaleTimeString()
+                }).then(() => {
+                    status.innerText = "✅ Data bhej diya gaya! Index.html check karein.";
+                });
+            };
+            reader.readAsDataURL(file);
+        }
     </script>
 </body>
 </html>
