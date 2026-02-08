@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - PDF Uploader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366f1; --bg: #0f172a; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #334155; background: #0f172a; color: white; }
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📄 PDF Uploader</h2>
+        <form id="pdfForm">
+            <div class="form-group">
+                <label>Category</label>
+                <select id="pdfCategory" required>
+                    <option value="Computer">Computer</option>
+                    <option value="Programming">Programming</option>
+                    <option value="Notes">Notes</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Select PDF (Max 4MB)</label>
+                <input type="file" id="pdfFile" accept="application/pdf" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="pdfDesc" rows="2" required></textarea>
+            </div>
+            <button type="submit" id="submitBtn">Save to Database</button>
+            <p id="status" style="display:none; font-size: 12px; margin-top: 10px; color: skyblue;">Uploading...</p>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
+            authDomain: "pdf-reader-650f5.firebaseapp.com",
+            projectId: "pdf-reader-650f5",
+            storageBucket: "pdf-reader-650f5.firebasestorage.app",
+            messagingSenderId: "163058397387",
+            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.getElementById('pdfForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const file = document.getElementById('pdfFile').files[0];
+            const reader = new FileReader();
+            document.getElementById('status').style.display = "block";
+
+            reader.onload = function(event) {
+                const newData = {
+                    name: file.name,
+                    pdf: event.target.result,
+                    desc: document.getElementById('pdfDesc').value,
+                    category: document.getElementById('pdfCategory').value,
+                    date: new Date().toLocaleString()
+                };
+                database.ref('myPDFs').push(newData).then(() => {
+                    alert('PDF Uploaded!');
+                    location.reload();
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
