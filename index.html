@@ -1,118 +1,96 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Vault - Reader</title>
+    <title>PDF Reader | Login & Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #38bdf8; --bg: #0f172a; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; padding: 15px; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); transition: 0.3s; border-radius: 20px; padding: 20px; }
-        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; }
+        .hidden { display: none; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-6">
-            <h1 class="text-xl font-black italic text-sky-500">PDF VAULT</h1>
-            <div class="bg-sky-500/20 text-sky-400 px-4 py-1 rounded-full text-xs font-bold border border-sky-500/30">
-                Limit: <span id="credit-count">5</span> Downloads Left
+    <div id="login-section" class="flex flex-col items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h2 class="text-2xl font-bold mb-6 text-center">Login to PDF Reader</h2>
+            <input type="text" id="username" placeholder="Email or Mobile" class="w-full p-2 mb-4 border rounded">
+            <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+            <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-blue-600">PDF Reader</h1>
+            <div class="flex items-center gap-4">
+                <span id="credit-count" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">Downloads Left: 5</span>
+                <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center border border-blue-500">👤</div>
+                <button onclick="logout()" class="text-red-500 text-sm">Logout</button>
             </div>
         </header>
 
-        <div class="glass p-5 rounded-3xl mb-8 flex items-center justify-between border-l-4 border-sky-500">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-sky-500 text-slate-900 rounded-full flex items-center justify-center text-xl font-bold">U</div>
-                <div>
-                    <h2 class="text-lg font-black leading-tight">Student Dashboard</h2>
-                    <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">SNT Institute Access</p>
-                </div>
+        <main class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold">Available PDFs</h2>
+                <button onclick="addPayment()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm">+ Add Credits (Pay)</button>
             </div>
-            <button onclick="openPayment()" class="bg-orange-500 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-lg">RECHARGE</button>
-        </div>
-
-        <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            
+            <div id="pdf-list" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                </div>
+        </main>
     </div>
-
-    <div id="pay-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-50 backdrop-blur-sm">
-        <div class="bg-white text-black p-8 rounded-3xl text-center max-w-xs w-full shadow-2xl">
-            <h3 class="font-bold text-xl mb-2">Recharge Wallet</h3>
-            <p class="text-gray-500 text-xs mb-4">Pay ₹100 for Unlimited Access</p>
-            <img id="qr-code" src="" class="mx-auto mb-4 border-4 border-gray-100 p-2 rounded-xl">
-            <p class="text-xs font-mono font-bold text-blue-600 bg-blue-50 py-2 rounded">mandavikaushal913@okaxis</p>
-            <button onclick="confirmPayment()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mt-4 shadow-lg">Payment Done</button>
-            <button onclick="openPayment()" class="text-gray-400 text-xs mt-4 block mx-auto">Close</button>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
-            authDomain: "pdf-reader-650f5.firebaseapp.com",
-            projectId: "pdf-reader-650f5",
-            storageBucket: "pdf-reader-650f5.firebasestorage.app",
-            messagingSenderId: "163058397387",
-            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         let credits = 5;
 
-        // Fetch All PDFs
-        db.ref('myPDFs').on('value', (snap) => {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            const data = snap.val() || {};
-            
-            Object.keys(data).reverse().forEach(key => {
-                const pdf = data[key];
-                const div = document.createElement('div');
-                div.className = 'pdf-card';
-                div.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="bg-sky-500/10 text-sky-400 px-2 py-1 rounded text-[10px] font-bold underline uppercase">${pdf.category}</span>
-                        <i class="fas fa-file-pdf text-red-500 text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-sm mb-1 truncate">${pdf.name}</h3>
-                    <p class="text-[10px] text-slate-400 line-clamp-2 h-7">${pdf.desc}</p>
-                    <button onclick="handleDownload('${pdf.pdf}')" class="btn-view">VIEW / DOWNLOAD</button>
-                `;
-                grid.appendChild(div);
-            });
-        });
+        function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            if(user && pass) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                loadPDFs();
+            } else { alert("Please enter details"); }
+        }
 
-        function handleDownload(fileUrl) {
-            if (credits > 0) {
+        function loadPDFs() {
+            const container = document.getElementById('pdf-list');
+            const pdfs = JSON.parse(localStorage.getItem('pdfs')) || [];
+            container.innerHTML = pdfs.length ? '' : '<p class="text-gray-500">No PDFs available. Add from Admin panel.</p>';
+            
+            pdfs.forEach((pdf, index) => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
+                        <div class="h-40 bg-gray-200 flex items-center justify-center mb-4 rounded">📄</div>
+                        <h3 class="font-bold">${pdf.title}</h3>
+                        <p class="text-sm text-gray-500 mb-4">${pdf.desc}</p>
+                        <button onclick="downloadPDF(${index})" class="w-full bg-blue-500 text-white py-1 rounded">Download</button>
+                    </div>
+                `;
+            });
+        }
+
+        function downloadPDF(index) {
+            if(credits > 0) {
                 credits--;
-                document.getElementById('credit-count').innerText = credits;
-                window.open(fileUrl, '_blank');
+                document.getElementById('credit-count').innerText = `Downloads Left: ${credits}`;
+                alert("Downloading PDF... Remaining Credits: " + credits);
             } else {
-                alert("Download limit reached! Please recharge.");
-                openPayment();
+                alert("No credits left! Please make a payment to download more.");
             }
         }
 
-        function openPayment() {
-            const upi = "mandavikaushal913@okaxis";
-            document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${upi}&pn=SNT_Reader&am=100&cu=INR`;
-            document.getElementById('pay-modal').classList.toggle('hidden');
+        function addPayment() {
+            let amount = prompt("Enter amount to pay (e.g., 100 for 10 downloads):");
+            if(amount) {
+                credits += 10;
+                document.getElementById('credit-count').innerText = `Downloads Left: ${credits}`;
+                alert("Payment Successful! 10 downloads added.");
+            }
         }
 
-        function confirmPayment() {
-            credits += 50; // Recharge 50 more
-            document.getElementById('credit-count').innerText = credits;
-            alert("Success! 50 Downloads added.");
-            document.getElementById('pay-modal').classList.add('hidden');
-        }
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
