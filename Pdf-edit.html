@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload PDF - SNT Institute</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366f1; --bg: #0f172a; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; color: white; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; color: #94a3b8; }
+        input, textarea, select { width: 100%; padding: 12px; border: 2px solid #334155; border-radius: 8px; box-sizing: border-box; background: #0f172a; color: white; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #status { margin-top: 15px; font-size: 0.85rem; color: #6366f1; display: none; font-weight: bold; }
+        h2 { margin-bottom: 1.5rem; color: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📄 PDF Uploader</h2>
+        <form id="pdfForm">
+            <div class="form-group">
+                <label>Course Select Karein</label>
+                <select id="pdfCategory" required>
+                    <option value="" disabled selected>Course chunein...</option>
+                    <option value="Computer Basics">Computer Basics</option>
+                    <option value="Computer Foundation">Computer Foundation</option>
+                    <option value="C++ Language">C++ Language</option>
+                    <option value="Java">Java</option>
+                    <option value="DCA & ADCA">DCA & ADCA</option>
+                    <option value="CCC">CCC</option>
+                    <option value="'O' Level">'O' Level</option>
+                    <option value="Web Design">Web Design</option>
+                    <option value="Python">Python</option>
+                    <option value="Tally ERP 9">Tally ERP 9</option>
+                    <option value="Adv. Excel">Adv. Excel</option>
+                    <option value="Hardware & Net.">Hardware & Net.</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>PDF Select Karein (Max 4MB)</label>
+                <input type="file" id="pdfFile" accept="application/pdf" required>
+            </div>
+            <div class="form-group">
+                <label>Short Description</label>
+                <textarea id="pdfDesc" rows="2" placeholder="Notes ke baare mein likhein..." required></textarea>
+            </div>
+            <button type="submit" id="submitBtn">Save Karein</button>
+            <div id="status">Processing... Database mein save ho raha hai...</div>
+        </form>
+        <a href="pdf.html" style="display:block; margin-top:15px; text-decoration:none; color:#64748b; font-size:0.9rem;">View Library →</a>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOQtM_XYLqPgxMK1XBdfl0m7KoAseZRCA",
+            authDomain: "snt-computer-institute.firebaseapp.com",
+            databaseURL: "https://snt-computer-institute-default-rtdb.firebaseio.com",
+            projectId: "snt-computer-institute",
+            storageBucket: "snt-computer-institute.firebasestorage.app",
+            messagingSenderId: "117580784781",
+            appId: "1:117580784781:web:73ba19d2d008beb3a5eec4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.getElementById('pdfForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const status = document.getElementById('status');
+            const file = document.getElementById('pdfFile').files[0];
+            const desc = document.getElementById('pdfDesc').value;
+            const category = document.getElementById('pdfCategory').value;
+
+            if(file.size > 4194304) { 
+                alert("File size 4MB se zyada hai! Please choti file upload karein."); 
+                return; 
+            }
+
+            btn.disabled = true;
+            status.style.display = "block";
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const newData = {
+                    name: file.name,
+                    pdf: event.target.result, 
+                    desc: desc,
+                    category: category, 
+                    date: new Date().toLocaleString()
+                };
+
+                database.ref('myPDFs').push(newData).then(() => {
+                    alert('Badhai ho! PDF Category (' + category + ') mein save ho gaya!');
+                    location.reload();
+                }).catch((error) => {
+                    alert('Error: ' + error.message);
+                    btn.disabled = false;
+                    status.style.display = "none";
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>

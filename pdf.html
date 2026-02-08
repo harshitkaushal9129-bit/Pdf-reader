@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My PDF Vault - SNT Institute</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; margin: 0; padding: 15px; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); transition: 0.3s; border-radius: 20px; padding: 20px; }
+        .pdf-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .course-badge { background: rgba(56, 189, 248, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(56, 189, 248, 0.2); }
+        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; transition: 0.2s; }
+        .btn-view:active { transform: scale(0.95); opacity: 0.9; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-6">
+            <a href="index.html" class="w-10 h-10 glass rounded-full flex items-center justify-center text-sky-400">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-xl font-black italic tracking-tighter">SNT <span class="text-sky-500">PDF VAULT</span></h1>
+            <div class="w-10"></div> </header>
+
+        <div class="glass p-5 rounded-3xl mb-8 flex items-center gap-4 border-l-4 border-sky-500">
+            <img id="user-img" src="./SNT.jpg" class="w-14 h-14 rounded-full border-2 border-sky-500 object-cover">
+            <div>
+                <h2 id="welcome-msg" class="text-lg font-black leading-tight">Loading Profile...</h2>
+                <p id="course-msg" class="text-sky-400 text-[10px] font-bold uppercase tracking-widest mt-1">Checking Courses...</p>
+            </div>
+        </div>
+
+        <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+        <div id="no-access" class="hidden text-center py-20">
+            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-file-circle-xmark text-slate-600 text-3xl"></i>
+            </div>
+            <h3 class="text-slate-400 font-bold">Koi PDF nahi mili</h3>
+            <p class="text-slate-500 text-xs mt-1">Aapke selected courses ke notes jald hi upload honge.</p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOQtM_XYLqPgxMK1XBdfl0m7KoAseZRCA",
+            authDomain: "snt-computer-institute.firebaseapp.com",
+            databaseURL: "https://snt-computer-institute-default-rtdb.firebaseio.com",
+            projectId: "snt-computer-institute",
+            storageBucket: "snt-computer-institute.firebasestorage.app",
+            messagingSenderId: "117580784781",
+            appId: "1:117580784781:web:73ba19d2d008beb3a5eec4"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        // PDF View Logic
+        function viewPDF(base64Data) {
+            try {
+                const blob = base64ToBlob(base64Data);
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } catch (e) {
+                alert("PDF load karne mein dikkat aa rahi hai.");
+            }
+        }
+
+        function base64ToBlob(base64) {
+            const parts = base64.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const rawLength = raw.length;
+            const uInt8Array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        // Auth Listener - Get data from "students/uid"
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('user-img').src = user.photoURL || "./SNT.jpg";
+                
+                // Get student info from database using UID
+                db.ref('students/' + user.uid).on('value', (snapshot) => {
+                    const studentData = snapshot.val();
+                    
+                    if (studentData) {
+                        const name = studentData.name || user.displayName;
+                        const courses = studentData.courses || []; // Array from Checkboxes
+                        
+                        document.getElementById('welcome-msg').innerText = name;
+                        
+                        const courseList = Array.isArray(courses) ? courses.join(", ") : (courses || "N/A");
+                        document.getElementById('course-msg').innerText = "Courses: " + courseList;
+
+                        loadPDFs(courses);
+                    } else {
+                        // Fallback: If UID node doesn't exist, check by email (for old data)
+                        checkByEmail(user);
+                    }
+                });
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function checkByEmail(user) {
+            db.ref('students').orderByChild('email').equalTo(user.email).once('value', (snap) => {
+                if(snap.exists()){
+                    const data = Object.values(snap.val())[0];
+                    loadPDFs(data.courses || []);
+                } else {
+                    document.getElementById('welcome-msg').innerText = "Guest User";
+                    loadPDFs([]);
+                }
+            });
+        }
+
+        function loadPDFs(studentCourses) {
+            const coursesArray = Array.isArray(studentCourses) ? studentCourses : [studentCourses];
+            
+            db.ref('myPDFs').on('value', (snap) => {
+                const grid = document.getElementById('grid');
+                const noAccess = document.getElementById('no-access');
+                grid.innerHTML = '';
+                const data = snap.val() || {};
+                
+                let found = 0;
+
+                Object.keys(data).reverse().forEach(key => {
+                    const pdf = data[key];
+                    
+                    // Logic: Match PDF Category with any of Student's Courses
+                    const isMatch = coursesArray.some(c => c.trim() === pdf.category?.trim()) || 
+                                    pdf.category === "Other" || 
+                                    pdf.category === "All";
+
+                    if (isMatch) {
+                        found++;
+                        const div = document.createElement('div');
+                        div.className = 'pdf-card animate-fade-in';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="course-badge">${pdf.category}</span>
+                                <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                            </div>
+                            <h3 class="font-black text-sm mb-1 truncate">${pdf.name}</h3>
+                            <p class="text-[10px] text-slate-400 line-clamp-2 h-7">${pdf.desc || 'No description available.'}</p>
+                            <button onclick="viewPDF('${pdf.pdf}')" class="btn-view">
+                                <i class="fas fa-eye mr-2"></i> VIEW NOTES
+                            </button>
+                        `;
+                        grid.appendChild(div);
+                    }
+                });
+
+                if (found === 0) {
+                    noAccess.classList.remove('hidden');
+                } else {
+                    noAccess.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
