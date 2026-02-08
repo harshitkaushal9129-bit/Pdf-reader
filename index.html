@@ -2,32 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Dash - Upload</title>
+    <title>User - View PDF</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; align-items: center; justify-content: center; color: white; }
-        .card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; width: 400px; }
-        h2 { margin-bottom: 20px; font-weight: 300; }
-        input[type="file"] { display: none; }
-        .custom-upload { background: #fff; color: #764ba2; padding: 12px 25px; border-radius: 30px; cursor: pointer; display: inline-block; font-weight: bold; transition: 0.3s; margin-bottom: 20px; }
-        .btn-send { background: #4CAF50; color: white; border: none; padding: 12px 30px; border-radius: 30px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s; opacity: 0.6; pointer-events: none; }
-        .btn-send.active { opacity: 1; pointer-events: all; }
-        #status { margin-top: 15px; font-size: 14px; color: #eee; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #2c3e50; }
+        iframe { width: 100%; height: 100vh; border: none; display: none; }
+        .loading { color: white; text-align: center; margin-top: 20%; font-family: sans-serif; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>📄 PDF Uploader</h2>
-        <label for="pdfInput" class="custom-upload">Select PDF</label>
-        <input type="file" id="pdfInput" accept="application/pdf">
-        <div id="fileName" style="margin-bottom: 15px; font-size: 12px;">No file chosen</div>
-        <button id="uploadBtn" class="btn-send" onclick="uploadToDB()">Send to Database</button>
-        <p id="status"></p>
+    <div id="loader" class="loading">
+        <h2>Waiting for Admin to upload...</h2>
     </div>
+
+    <iframe id="pdfFrame"></iframe>
 
     <script>
         const firebaseConfig = {
@@ -41,38 +31,16 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        const fileInput = document.getElementById('pdfInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const fileNameDisp = document.getElementById('fileName');
-
-        fileInput.onchange = () => {
-            if(fileInput.files.length > 0) {
-                fileNameDisp.innerText = fileInput.files[0].name;
-                uploadBtn.classList.add('active');
+        // Firebase se data 'listen' karna
+        database.ref('livePDF').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.pdfData) {
+                const frame = document.getElementById('pdfFrame');
+                frame.src = data.pdfData;
+                frame.style.display = "block";
+                document.getElementById('loader').style.display = "none";
             }
-        };
-
-        function uploadToDB() {
-            const file = fileInput.files[0];
-            const status = document.getElementById('status');
-            
-            if (file.size > 8 * 1024 * 1024) return alert("File size too large for DB (Max 8MB)");
-
-            const reader = new FileReader();
-            status.innerText = "Processing Cloud Upload...";
-
-            reader.onload = function(e) {
-                database.ref('livePDF').set({
-                    pdfData: e.target.result,
-                    sender: "User_1",
-                    time: new Date().toLocaleTimeString()
-                }).then(() => {
-                    status.innerText = "✅ Successfully Sent!";
-                    setTimeout(() => { window.open('viewer.html', '_blank'); }, 1000);
-                });
-            };
-            reader.readAsDataURL(file);
-        }
+        });
     </script>
 </body>
 </html>
