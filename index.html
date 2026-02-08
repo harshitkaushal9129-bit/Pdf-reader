@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PDF Vault Pro</title>
     
     <link rel="manifest" href="manifest.json">
@@ -15,86 +15,110 @@
     
     <style>
         :root { --primary: #38bdf8; --bg: #0f172a; }
+        
+        /* Security: Text selection block */
+        * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+        
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; margin: 0; overflow-x: hidden; }
+        
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        
         .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; transition: 0.3s; }
-        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        
+        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .btn-download { width: 100%; background: transparent; color: var(--primary); border: 1px solid var(--primary); font-weight: 600; padding: 10px; border-radius: 12px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+        
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        
         .nav-item.active { color: var(--primary); }
+        
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .login-logo { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); padding: 5px; margin: 0 auto 20px auto; object-fit: cover; box-shadow: 0 0 25px rgba(56, 189, 248, 0.4); background: #1e293b; }
+        
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
     <div id="login-screen" class="fixed inset-0 bg-[#0f172a] z-[1000] flex items-center justify-center">
-        <div class="p-8 glass rounded-3xl text-center max-w-sm mx-4 border border-white/10">
+        <div class="p-10 glass rounded-[40px] text-center max-w-sm mx-4 border border-white/10 shadow-2xl">
+            <img src="logo.png" alt="App Logo" class="login-logo">
             <h2 class="text-3xl font-black mb-2 italic text-sky-400">PDF <span class="text-white">VAULT</span></h2>
-            <p class="text-slate-400 text-sm mb-8">Sign in to access your premium notes.</p>
-            <button onclick="googleLogin()" class="flex items-center justify-center gap-3 w-full bg-white text-slate-900 font-bold py-3 px-4 rounded-xl shadow-lg hover:scale-105 transition">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5">
-                Continue with Google
+            <p class="text-slate-400 text-sm mb-8">Apne premium notes access karne ke liye login karein.</p>
+            <button onclick="googleLogin()" class="flex items-center justify-center gap-3 w-full bg-white text-slate-900 font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6">
+                Google se Sign in karein
             </button>
         </div>
     </div>
 
     <div id="dashboard" class="hidden">
-        <main id="home-tab" class="tab-content active max-w-4xl mx-auto p-4 pb-32">
-            <header class="flex justify-between items-center py-6 px-2">
+        
+        <main id="home-tab" class="tab-content active max-w-4xl mx-auto p-5 pb-32">
+            <header class="flex justify-between items-center py-6">
                 <div>
-                    <h1 class="text-2xl font-black">PDF <span class="text-sky-500">VAULT</span></h1>
-                    <p class="text-xs text-slate-400">Welcome, <span id="welcome-name">Student</span></p>
+                    <h1 class="text-2xl font-black italic tracking-tighter">PDF <span class="text-sky-500">VAULT</span></h1>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Premium Learning</p>
                 </div>
-                <button onclick="installApp()" id="install-btn" class="hidden bg-sky-500/10 text-sky-400 p-2 rounded-full border border-sky-500/20"><i class="fas fa-download"></i></button>
+                <button onclick="installApp()" id="install-btn" class="hidden bg-sky-500/10 text-sky-400 p-3 rounded-full border border-sky-500/20 animate-bounce">
+                    <i class="fas fa-download"></i>
+                </button>
             </header>
-            <div id="pdf-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            
+            <div id="pdf-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                </div>
         </main>
 
         <main id="profile-tab" class="tab-content max-w-4xl mx-auto p-6 pb-32">
-            <div class="glass rounded-[32px] p-8 text-center border-b-4 border-sky-500">
-                <img id="user-img" src="" class="w-20 h-20 rounded-full mx-auto border-4 border-sky-500 p-1 mb-4 shadow-xl">
-                <h2 id="user-name" class="text-xl font-bold">Loading...</h2>
+            <div class="glass rounded-[35px] p-8 text-center border-b-4 border-sky-500 shadow-2xl">
+                <img id="user-img" src="" class="w-24 h-24 rounded-full mx-auto border-4 border-sky-500 p-1 mb-4 shadow-2xl">
+                <h2 id="user-name" class="text-2xl font-black tracking-tight">Loading...</h2>
+                <p id="user-email" class="text-slate-500 text-xs mb-6 italic"></p>
                 
-                <div class="grid grid-cols-2 gap-4 mt-6">
-                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Opened</p>
-                        <p id="used-count" class="text-sky-400 text-xl font-black">0</p>
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <div class="bg-slate-800/40 p-5 rounded-3xl border border-white/5">
+                        <p class="text-[9px] text-slate-400 uppercase font-black mb-1">Total Used</p>
+                        <p id="used-count" class="text-sky-400 text-2xl font-black">0</p>
                     </div>
-                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Limit</p>
-                        <p id="total-limit" class="text-white text-xl font-black">5</p>
+                    <div class="bg-slate-800/40 p-5 rounded-3xl border border-white/5">
+                        <p class="text-[9px] text-slate-400 uppercase font-black mb-1">Your Limit</p>
+                        <p id="total-limit" class="text-white text-2xl font-black">5</p>
                     </div>
                 </div>
 
-                <div class="mt-8 bg-sky-500/5 p-6 rounded-3xl border border-sky-500/20">
-                    <h3 class="text-sm font-bold text-sky-400 mb-4">RECHARGE LIMIT</h3>
-                    <div class="flex gap-2 mb-4">
-                        <input type="number" id="pay-amount" placeholder="Enter Amount" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center font-bold text-sky-400 focus:outline-none focus:border-sky-500">
+                <div class="mt-8 bg-sky-500/5 p-6 rounded-[30px] border border-sky-500/20">
+                    <h3 class="text-xs font-black text-sky-400 mb-4 tracking-widest">RECHARGE PDF LIMIT</h3>
+                    <input type="number" id="pay-amount" placeholder="Enter Amount (₹)" class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-4 text-center font-bold text-sky-400 mb-4 focus:outline-none focus:border-sky-500 shadow-inner">
+                    <button onclick="processUPI()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all">PAY & GET LIMIT</button>
+                    <div class="flex justify-around mt-4 text-[8px] text-slate-500 font-bold uppercase">
+                        <span>₹10 = 10 PDF</span>
+                        <span>₹35 = 40 PDF</span>
+                        <span>₹50 = 60 PDF</span>
                     </div>
-                    <button onclick="processUPI()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition">
-                        PAY & UNLOCK
-                    </button>
-                    <p class="text-[9px] text-slate-500 mt-3 italic">Note: ₹10=10 PDF, ₹35=40 PDF, ₹50=60 PDF</p>
                 </div>
 
                 <div class="mt-8 border-t border-white/5 pt-6">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">Developer Support</p>
-                    <div class="flex gap-3">
-                        <a href="tel:+919129191898" class="flex-1 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold border border-white/5"><i class="fas fa-phone-alt mr-2"></i> Call</a>
-                        <a href="https://wa.me/919129191898" class="flex-1 bg-green-600/20 text-green-400 py-3 rounded-xl text-xs font-bold border border-green-500/20"><i class="fab fa-whatsapp mr-2"></i> WhatsApp</a>
+                    <p class="text-[10px] text-slate-500 font-black uppercase mb-4 tracking-tighter">Developer Support (Call/WhatsApp)</p>
+                    <div class="flex gap-4">
+                        <a href="tel:+919129191898" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl text-xs font-bold border border-white/5 shadow-lg"><i class="fas fa-phone-alt mr-2 text-sky-400"></i> Call</a>
+                        <a href="https://wa.me/919129191898" class="flex-1 bg-green-600/10 text-green-400 py-4 rounded-2xl text-xs font-bold border border-green-500/20 shadow-lg"><i class="fab fa-whatsapp mr-2"></i> WhatsApp</a>
                     </div>
                 </div>
 
-                <button onclick="logout()" class="mt-8 text-red-500 text-[10px] font-bold uppercase tracking-widest opacity-60">Sign Out</button>
+                <button onclick="logout()" class="mt-10 text-red-500/50 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-red-500 transition-colors">Logout Session</button>
             </div>
         </main>
 
         <nav class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home-tab', this)"><i class="fas fa-book-open"></i><span>NOTES</span></div>
-            <div class="nav-item" onclick="switchTab('profile-tab', this)"><i class="fas fa-user-circle"></i><span>PROFILE</span></div>
+            <div class="nav-item active" onclick="switchTab('home-tab', this)"><i class="fas fa-layer-group text-xl mb-1"></i><span>VAULT</span></div>
+            <div class="nav-item" onclick="switchTab('profile-tab', this)"><i class="fas fa-id-badge text-xl mb-1"></i><span>ACCOUNT</span></div>
         </nav>
     </div>
 
@@ -103,10 +127,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-        // PWA Registry
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-            </script>
-    <script>
+        // --- A. SECURITY: Block Developer Tools ---
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false; // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Inspect
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; // Element Select
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // View Source
+        };
+
+        // --- B. FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
@@ -120,7 +149,7 @@
 
         let userData = { views: 0, limit: 5 };
 
-        // Auth Logic
+        // --- C. AUTHENTICATION ---
         function googleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider);
@@ -133,8 +162,9 @@
                 document.getElementById('dashboard').classList.remove('hidden');
                 document.getElementById('user-img').src = user.photoURL;
                 document.getElementById('user-name').innerText = user.displayName;
-                document.getElementById('welcome-name').innerText = user.displayName.split(' ')[0];
+                document.getElementById('user-email').innerText = user.email;
 
+                // Sync data from Firebase
                 db.ref('students/' + user.uid).on('value', (snap) => {
                     userData = snap.val() || { views: 0, limit: 5 };
                     document.getElementById('used-count').innerText = userData.views;
@@ -144,18 +174,7 @@
             }
         });
 
-        // Dynamic Payment Calculation
-        function processUPI() {
-            const amount = document.getElementById('pay-amount').value;
-            if (!amount || amount < 1) { alert("Please enter a valid amount."); return; }
-            
-            let upiLink = `upi://pay?pa=mandavikaushal913@okaxis&pn=SNT%20Vault&am=${amount}&cu=INR`;
-            window.location.href = upiLink;
-
-            alert("Payment karne ke baad, Screenshot Developer (+91 9129191898) ko bhejein limit turant badhane ke liye.");
-        }
-
-        // PDF Grid
+        // --- D. PDF GRID & ACTION LOGIC ---
         function loadPDFs() {
             db.ref('myPDFs').on('value', (snap) => {
                 const grid = document.getElementById('pdf-grid');
@@ -166,38 +185,48 @@
                     div.className = 'pdf-card';
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-4">
-                            <span class="text-[9px] font-bold bg-sky-500/10 text-sky-400 px-2 py-1 rounded uppercase">${pdf.category || 'Notes'}</span>
-                            <i class="fas fa-file-pdf text-red-500"></i>
+                            <span class="text-[9px] font-bold bg-sky-500/10 text-sky-400 px-2 py-1 rounded uppercase tracking-tighter">${pdf.category || 'General'}</span>
+                            <i class="fas fa-file-pdf text-red-500 text-xl"></i>
                         </div>
-                        <h3 class="font-bold text-sm truncate">${pdf.name}</h3>
-                        <button onclick="openPDF('${pdf.pdf}')" class="btn-view">VIEW NOTES</button>
+                        <h3 class="font-bold text-sm truncate mb-1">${pdf.name}</h3>
+                        <p class="text-[10px] text-slate-500 mb-4">Premium Study Materials</p>
+                        <button onclick="handleAction('${pdf.pdf}', 'view')" class="btn-view">
+                            <i class="fas fa-eye"></i> VIEW NOTES
+                        </button>
+                        <button onclick="handleAction('${pdf.pdf}', 'download', '${pdf.name}')" class="btn-download">
+                            <i class="fas fa-download"></i> DOWNLOAD
+                        </button>
                     `;
                     grid.appendChild(div);
                 });
             });
         }
 
-        // PDF View Logic (Fixed Blob)
-        function openPDF(base64) {
+        function handleAction(base64, mode, fileName = "Notes") {
             if (userData.views >= userData.limit) {
-                alert("Limit Reached! Please recharge in Profile section.");
+                alert("Limit khatam ho gayi hai! Profile mein jaakar recharge karein.");
                 switchTab('profile-tab', document.querySelectorAll('.nav-item')[1]);
                 return;
             }
 
-            db.ref('students/' + auth.currentUser.uid).update({ views: userData.views + 1 });
+            // Increment Counter in Database
+            db.ref('students/' + auth.currentUser.uid).update({ 
+                views: userData.views + 1 
+            });
 
-            try {
-                const blob = base64ToBlob(base64);
-                const url = URL.createObjectURL(blob);
+            const blob = base64ToBlob(base64);
+            const url = URL.createObjectURL(blob);
+
+            if (mode === 'view') {
                 const win = window.open();
-                if (win) {
-                    win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
-                } else {
-                    location.href = url;
-                }
-            } catch (e) {
-                alert("Error opening PDF.");
+                win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+            } else {
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName + ".pdf";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
 
@@ -211,6 +240,16 @@
             return new Blob([uInt8Array], { type: contentType });
         }
 
+        // --- E. PAYMENT & UI ---
+        function processUPI() {
+            const amount = document.getElementById('pay-amount').value;
+            if (!amount || amount < 1) { alert("Sahi amount bharein."); return; }
+            window.location.href = `upi://pay?pa=mandavikaushal913@okaxis&pn=SNT%20Vault&am=${amount}&cu=INR`;
+            setTimeout(() => {
+                alert("Payment ke baad screenshot +91 9129191898 par WhatsApp karein.");
+            }, 2000);
+        }
+
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -218,16 +257,16 @@
             el.classList.add('active');
         }
 
-        // PWA Install Prompt
-        let defPrompt;
+        // PWA Setup
+        let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); defPrompt = e;
+            e.preventDefault(); deferredPrompt = e;
             document.getElementById('install-btn').classList.remove('hidden');
         });
         function installApp() {
-            if (defPrompt) {
-                defPrompt.prompt();
-                defPrompt.userChoice.then(() => document.getElementById('install-btn').classList.add('hidden'));
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => document.getElementById('install-btn').classList.add('hidden'));
             }
         }
     </script>
