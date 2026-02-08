@@ -13,39 +13,47 @@
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; margin: 0; padding: 15px; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); transition: 0.3s; border-radius: 20px; padding: 20px; }
-        .pdf-card:hover { border-color: var(--primary); transform: translateY(-3px); }
-        .course-badge { background: rgba(56, 189, 248, 0.1); color: var(--primary); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(56, 189, 248, 0.2); }
-        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; transition: 0.2s; }
-        .btn-view:active { transform: scale(0.95); opacity: 0.9; }
+        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; }
+        #login-overlay { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .limit-reached { border: 2px solid #ef4444 !important; opacity: 0.7; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-6">
-            <a href="index.html" class="w-10 h-10 glass rounded-full flex items-center justify-center text-sky-400">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="text-xl font-black italic tracking-tighter">SNT <span class="text-sky-500">PDF VAULT</span></h1>
-            <div class="w-10"></div> 
+    <div id="login-overlay">
+        <div class="p-8 glass rounded-3xl text-center max-w-sm mx-4">
+            <i class="fas fa-user-shield text-sky-400 text-4xl mb-4"></i>
+            <h2 class="text-xl font-bold mb-2">Aap Logged In Nahi Hain</h2>
+            <p class="text-slate-400 text-sm mb-6">PDF dekhne ke liye Login zaroori hai.</p>
+            <a href="index.html" class="block w-full bg-sky-500 text-slate-900 font-bold py-3 rounded-xl">Login Karein</a>
+        </div>
+    </div>
+
+    <div id="main-content" class="max-w-4xl mx-auto hidden pb-32">
+        <header class="glass p-5 rounded-3xl mb-6 flex flex-col md:flex-row items-center gap-4">
+            <img id="user-img" src="./SNT.jpg" class="w-16 h-16 rounded-full border-2 border-sky-500">
+            <div class="text-center md:text-left flex-1">
+                <h2 id="user-name" class="text-xl font-black italic tracking-tighter">Loading...</h2>
+                <div class="flex flex-wrap gap-2 justify-center md:justify-start mt-1">
+                    <span id="user-email" class="text-[10px] bg-slate-800 px-2 py-1 rounded border border-white/10 text-slate-300"></span>
+                    <span id="user-phone" class="text-[10px] bg-slate-800 px-2 py-1 rounded border border-white/10 text-sky-400"></span>
+                </div>
+            </div>
+            <a href="index.html" class="text-xs font-bold text-red-400 hover:underline">Log Out</a>
         </header>
 
-        <div class="glass p-5 rounded-3xl mb-8 flex items-center gap-4 border-l-4 border-sky-500">
-            <img id="user-img" src="./SNT.jpg" class="w-14 h-14 rounded-full border-2 border-sky-500 object-cover">
-            <div>
-                <h2 id="welcome-msg" class="text-lg font-black leading-tight">Loading Profile...</h2>
-                <p id="course-msg" class="text-sky-400 text-[10px] font-bold uppercase tracking-widest mt-1">Checking Courses...</p>
-            </div>
-        </div>
-
         <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    </div>
 
-        <div id="no-access" class="hidden text-center py-20">
-            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-file-circle-xmark text-slate-600 text-3xl"></i>
+    <div id="payment-bar" class="fixed bottom-0 left-0 right-0 glass p-4 border-t border-white/10 hidden z-50">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-center sm:text-left">
+                <h4 class="text-red-400 font-bold text-sm">Download Limit Reached! 🛑</h4>
+                <p class="text-[10px] text-slate-300">Aapne 5 PDF dekh li hain. Aur dekhne ke liye niche UPI par ₹99 pay karein.</p>
             </div>
-            <h3 class="text-slate-400 font-bold">Koi PDF nahi mili</h3>
-            <p class="text-slate-500 text-xs mt-1">Aapke selected courses ke notes jald hi upload honge.</p>
+            <a href="upi://pay?pa=mandavikaushal913@okaxis&pn=SNT%20Institute&am=99&cu=INR" class="bg-green-500 text-white px-6 py-2 rounded-full font-bold text-sm animate-bounce">
+                PAY ₹99 VIA UPI
+            </a>
         </div>
     </div>
 
@@ -54,7 +62,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-        // Updated Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
@@ -62,117 +69,85 @@
             projectId: "pdf-reader-650f5",
             storageBucket: "pdf-reader-650f5.firebasestorage.app",
             messagingSenderId: "163058397387",
-            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e",
-            measurementId: "G-4S5Y26NXGR"
+            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
 
-        function viewPDF(base64Data) {
-            try {
-                const blob = base64ToBlob(base64Data);
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-            } catch (e) {
-                alert("PDF load karne mein dikkat aa rahi hai.");
+        let viewCount = localStorage.getItem('pdf_views') || 0;
+        let isPaid = false; // Isko aap database se true kar sakte hain payment ke baad
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-content').classList.remove('hidden');
+                
+                // Show User Data
+                document.getElementById('user-email').innerText = "✉ " + user.email;
+                document.getElementById('user-img').src = user.photoURL || "./SNT.jpg";
+
+                db.ref('students/' + user.uid).on('value', (snap) => {
+                    const data = snap.val();
+                    if(data) {
+                        document.getElementById('user-name').innerText = data.name || user.displayName;
+                        document.getElementById('user-phone').innerText = "📞 " + (data.phone || "No Number");
+                        isPaid = data.isPaid || false; // Database mein 'isPaid' check karein
+                        loadPDFs();
+                    }
+                });
             }
+        });
+
+        function loadPDFs() {
+            db.ref('myPDFs').on('value', (snap) => {
+                const grid = document.getElementById('grid');
+                grid.innerHTML = '';
+                const data = snap.val() || {};
+                
+                Object.keys(data).reverse().forEach(key => {
+                    const pdf = data[key];
+                    const div = document.createElement('div');
+                    div.className = 'pdf-card';
+                    div.innerHTML = `
+                        <h3 class="font-bold text-sm mb-1">${pdf.name}</h3>
+                        <p class="text-[10px] text-slate-400 mb-3">${pdf.category}</p>
+                        <button onclick="handlePDFView('${pdf.pdf}')" class="btn-view">
+                            <i class="fas fa-eye mr-2"></i> VIEW NOTES
+                        </button>
+                    `;
+                    grid.appendChild(div);
+                });
+            });
+        }
+
+        function handlePDFView(base64) {
+            if (viewCount >= 5 && !isPaid) {
+                document.getElementById('payment-bar').classList.remove('hidden');
+                alert("Limit khatam! Kripya agle PDFs ke liye payment karein.");
+                return;
+            }
+
+            // Increment View Count
+            if(!isPaid) {
+                viewCount++;
+                localStorage.setItem('pdf_views', viewCount);
+            }
+
+            // View PDF
+            const blob = base64ToBlob(base64);
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
         }
 
         function base64ToBlob(base64) {
             const parts = base64.split(';base64,');
             const contentType = parts[0].split(':')[1];
             const raw = window.atob(parts[1]);
-            const rawLength = raw.length;
-            const uInt8Array = new Uint8Array(rawLength);
-            for (let i = 0; i < rawLength; ++i) {
-                uInt8Array[i] = raw.charCodeAt(i);
-            }
+            const uInt8Array = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) uInt8Array[i] = raw.charCodeAt(i);
             return new Blob([uInt8Array], { type: contentType });
-        }
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                document.getElementById('user-img').src = user.photoURL || "./SNT.jpg";
-                
-                db.ref('students/' + user.uid).on('value', (snapshot) => {
-                    const studentData = snapshot.val();
-                    
-                    if (studentData) {
-                        const name = studentData.name || user.displayName;
-                        const courses = studentData.courses || []; 
-                        
-                        document.getElementById('welcome-msg').innerText = name;
-                        
-                        const courseList = Array.isArray(courses) ? courses.join(", ") : (courses || "N/A");
-                        document.getElementById('course-msg').innerText = "Courses: " + courseList;
-
-                        loadPDFs(courses);
-                    } else {
-                        checkByEmail(user);
-                    }
-                });
-            } else {
-                window.location.href = "index.html";
-            }
-        });
-
-        function checkByEmail(user) {
-            db.ref('students').orderByChild('email').equalTo(user.email).once('value', (snap) => {
-                if(snap.exists()){
-                    const data = Object.values(snap.val())[0];
-                    loadPDFs(data.courses || []);
-                } else {
-                    document.getElementById('welcome-msg').innerText = "Guest User";
-                    loadPDFs([]);
-                }
-            });
-        }
-
-        function loadPDFs(studentCourses) {
-            const coursesArray = Array.isArray(studentCourses) ? studentCourses : [studentCourses];
-            
-            db.ref('myPDFs').on('value', (snap) => {
-                const grid = document.getElementById('grid');
-                const noAccess = document.getElementById('no-access');
-                grid.innerHTML = '';
-                const data = snap.val() || {};
-                
-                let found = 0;
-
-                Object.keys(data).reverse().forEach(key => {
-                    const pdf = data[key];
-                    const isMatch = coursesArray.some(c => c.trim() === pdf.category?.trim()) || 
-                                    pdf.category === "Other" || 
-                                    pdf.category === "All";
-
-                    if (isMatch) {
-                        found++;
-                        const div = document.createElement('div');
-                        div.className = 'pdf-card animate-fade-in';
-                        div.innerHTML = `
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="course-badge">${pdf.category}</span>
-                                <i class="fas fa-file-pdf text-red-500 text-xl"></i>
-                            </div>
-                            <h3 class="font-black text-sm mb-1 truncate">${pdf.name}</h3>
-                            <p class="text-[10px] text-slate-400 line-clamp-2 h-7">${pdf.desc || 'No description available.'}</p>
-                            <button onclick="viewPDF('${pdf.pdf}')" class="btn-view">
-                                <i class="fas fa-eye mr-2"></i> VIEW NOTES
-                            </button>
-                        `;
-                        grid.appendChild(div);
-                    }
-                });
-
-                if (found === 0) {
-                    noAccess.classList.remove('hidden');
-                } else {
-                    noAccess.classList.add('hidden');
-                }
-            });
         }
     </script>
 </body>
