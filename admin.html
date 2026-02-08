@@ -2,39 +2,22 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNT Admin - 10MB Upload</title>
+    <title>Admin - Heavy PDF (10MB)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e293b; padding: 2rem; border-radius: 20px; width: 95%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); }
-        input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #334155; background: #0f172a; color: white; outline: none; margin-bottom: 15px; }
-        button { width: 100%; background: #6366f1; color: white; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #status { display: none; margin-top: 15px; font-size: 13px; text-align: center; color: #38bdf8; }
-    </style>
 </head>
-<body>
-    <div class="card">
-        <h2 class="text-2xl font-bold mb-6 text-center">📤 PDF Uploader (10MB)</h2>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">
+    <div class="bg-slate-800 p-8 rounded-2xl w-full max-w-md border border-slate-700 shadow-2xl">
+        <h2 class="text-2xl font-bold mb-6 text-center text-indigo-400">📤 10MB PDF Uploader</h2>
         <form id="pdfForm">
-            <label class="text-xs text-gray-400 font-bold uppercase">Course</label>
-            <select id="pdfCategory" required>
-                <option value="CCC">CCC</option>
-                <option value="O Level">'O' Level</option>
-                <option value="DCA & ADCA">DCA & ADCA</option>
-                <option value="Java/Python">Java/Python</option>
-                <option value="Other">Other</option>
-            </select>
-
-            <label class="text-xs text-gray-400 font-bold uppercase">Select PDF (Max 10MB)</label>
-            <input type="file" id="pdfFile" accept="application/pdf" required>
-
-            <label class="text-xs text-gray-400 font-bold uppercase">Description</label>
-            <textarea id="pdfDesc" rows="2" placeholder="Notes ke baare mein..." required></textarea>
-
-            <button type="submit" id="submitBtn">UPLOAD NOW</button>
-            <div id="status">Converting large file... Please don't close the tab.</div>
+            <input type="file" id="pdfFile" accept="application/pdf" class="w-full mb-4 text-sm" required>
+            <input type="text" id="pdfName" placeholder="PDF Title" class="w-full p-3 mb-4 bg-slate-900 rounded-xl border border-slate-700" required>
+            <button type="submit" id="submitBtn" class="w-full bg-indigo-600 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">UPLOAD PDF</button>
+            <div id="status" class="hidden mt-4 text-center">
+                <div class="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                    <div id="p-bar" class="bg-indigo-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="status-text" class="text-xs text-indigo-300">Processing file...</p>
+            </div>
         </form>
     </div>
 
@@ -43,49 +26,45 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAOQtM_XYLqPgxMK1XBdfl0m7KoAseZRCA",
-            authDomain: "snt-computer-institute.firebaseapp.com",
-            databaseURL: "https://snt-computer-institute-default-rtdb.firebaseio.com",
-            projectId: "snt-computer-institute",
-            storageBucket: "snt-computer-institute.firebasestorage.app",
-            messagingSenderId: "117580784781",
-            appId: "1:117580784781:web:73ba19d2d008beb3a5eec4"
+            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
+            authDomain: "pdf-reader-650f5.firebaseapp.com",
+            projectId: "pdf-reader-650f5",
+            storageBucket: "pdf-reader-650f5.firebasestorage.app",
+            messagingSenderId: "163058397387",
+            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
         };
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const db = firebase.database();
 
         document.getElementById('pdfForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const status = document.getElementById('status');
             const file = document.getElementById('pdfFile').files[0];
-
-            // 10MB Limit Check
-            if(file.size > 10485760) { 
-                alert("File 10MB se zyada hai! Please compress karein."); 
-                return; 
-            }
+            const name = document.getElementById('pdfName').value;
+            const btn = document.getElementById('submitBtn');
+            const pBar = document.getElementById('p-bar');
+            
+            if (file.size > 10 * 1024 * 1024) { alert("Max 10MB Allowed!"); return; }
 
             btn.disabled = true;
-            status.style.display = "block";
+            document.getElementById('status').classList.remove('hidden');
 
             const reader = new FileReader();
             reader.onload = function(event) {
-                const newData = {
-                    name: file.name,
-                    pdf: event.target.result, 
-                    desc: document.getElementById('pdfDesc').value,
-                    category: document.getElementById('pdfCategory').value,
+                const base64 = event.target.result;
+                const pdfId = Date.now();
+                
+                // Saving data to Realtime Database
+                db.ref('allPDFs/' + pdfId).set({
+                    name: name,
+                    pdfData: base64, // Storing full string (Optimized for up to 10MB)
                     date: new Date().toLocaleString()
-                };
-
-                database.ref('myPDFs').push(newData).then(() => {
-                    alert('Success! 10MB entry saved.');
+                }).then(() => {
+                    pBar.style.width = "100%";
+                    alert("PDF Uploaded Successfully!");
                     location.reload();
-                }).catch((error) => {
-                    alert('Database Error: Entry might be too large for Realtime DB. Try a slightly smaller file.');
+                }).catch(err => {
+                    alert("Database Error: Entry too heavy. Please compress PDF.");
                     btn.disabled = false;
-                    status.style.display = "none";
                 });
             };
             reader.readAsDataURL(file);
