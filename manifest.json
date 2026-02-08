@@ -1,6 +1,6 @@
 {
   "name": "SNT PDF Vault",
-  "short_name": "SNT Vault",
+  "short_name": "Pdf Vault",
   "description": "Secure Study Notes Access",
   "start_url": "index.html",
   "display": "standalone",
