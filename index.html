@@ -1,86 +1,59 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNT Reader</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Upload to Realtime DB</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 </head>
-<body class="bg-slate-900 text-white p-6">
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-black text-indigo-500">SNT VAULT</h1>
-            <div class="bg-indigo-500/20 text-indigo-400 px-4 py-1 rounded-full text-xs font-bold border border-indigo-500/30">
-                Limit: <span id="credits">5</span> Left
-            </div>
-        </header>
-
-        <div id="pdf-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <p>Loading files...</p>
-        </div>
-    </div>
-
-    <div id="pay-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50">
-        <div class="bg-white text-black p-8 rounded-3xl text-center max-w-xs w-full">
-            <h3 class="font-bold text-lg mb-4">Download Limit Reached!</h3>
-            <img id="qr" src="" class="mx-auto mb-4 border p-2">
-            <p class="text-[10px] text-gray-500 mb-4">Pay ₹100 for Unlimited Access</p>
-            <button onclick="addCredits()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">I Have Paid</button>
-            <button onclick="location.reload()" class="text-gray-400 text-xs mt-4">Close</button>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <h2>Upload PDF to Realtime Database</h2>
+    <input type="file" id="pdfInput" accept="application/pdf">
+    <button onclick="uploadToDB()">Upload String</button>
+    <p id="status"></p>
 
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
             projectId: "pdf-reader-650f5",
+            databaseURL: "https://pdf-reader-650f5-default-rtdb.firebaseio.com", // Apni URL check karein
             storageBucket: "pdf-reader-650f5.firebasestorage.app",
             messagingSenderId: "163058397387",
             appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
         };
+
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let limit = 5;
+        const database = firebase.database();
 
-        // Load PDFs
-        db.ref('allPDFs').on('value', snap => {
-            const grid = document.getElementById('pdf-grid');
-            grid.innerHTML = '';
-            snap.forEach(child => {
-                const pdf = child.val();
-                grid.innerHTML += `
-                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-                        <h3 class="font-bold text-lg mb-4 truncate">${pdf.name}</h3>
-                        <button onclick="downloadPDF('${pdf.pdfData}')" class="w-full bg-indigo-600 py-3 rounded-xl font-bold">DOWNLOAD</button>
-                    </div>`;
-            });
-        });
+        function uploadToDB() {
+            const file = document.getElementById('pdfInput').files[0];
+            const status = document.getElementById('status');
 
-        function downloadPDF(data) {
-            if(limit > 0) {
-                limit--;
-                document.getElementById('credits').innerText = limit;
-                const a = document.createElement('a');
-                a.href = data;
-                a.download = "Notes.pdf";
-                a.click();
-            } else {
-                const upi = "mandavikaushal913@okaxis";
-                document.getElementById('qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${upi}&am=100`;
-                document.getElementById('pay-modal').classList.remove('hidden');
-            }
-        }
+            if (!file) return alert("Select a file!");
+            
+            // File size check (RTDB limit ~10MB)
+            if (file.size > 5 * 1024 * 1024) return alert("File too big for Realtime DB! Keep it under 5MB.");
 
-        function addCredits() {
-            limit += 50;
-            document.getElementById('credits').innerText = limit;
-            document.getElementById('pay-modal').classList.add('hidden');
-            alert("50 Credits Added!");
+            const reader = new FileReader();
+            status.innerText = "Converting & Uploading...";
+
+            reader.onload = function(e) {
+                const base64String = e.target.result;
+                
+                // Database mein save karein
+                database.ref('sharedPDF').set({
+                    pdfData: base64String,
+                    name: file.name,
+                    timestamp: Date.now()
+                }).then(() => {
+                    status.innerText = "Uploaded to DB! Open viewer.html now.";
+                }).catch(err => {
+                    console.error(err);
+                    status.innerText = "Error: " + err.message;
+                });
+            };
+            reader.readAsDataURL(file); // Convert PDF to Base64
         }
     </script>
 </body>
