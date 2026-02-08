@@ -3,58 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNT PDF Reader</title>
+    <title>SNT Vault</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; }
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; padding: 20px; }
         .hidden { display: none; }
+        .pdf-card { background: #1e293b; padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
-    <div id="login-section" class="flex flex-col items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">SNT Institute Login</h2>
-            <input type="text" id="username" placeholder="Email or Mobile" class="w-full p-3 mb-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
-            <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-6 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
-            <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">Login</button>
+    <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-2xl w-full max-w-sm text-black">
+            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Student Login</h2>
+            <input type="text" id="user" placeholder="Username" class="w-full p-3 border rounded-xl mb-4 outline-none">
+            <input type="password" id="pass" placeholder="Password" class="w-full p-3 border rounded-xl mb-6 outline-none">
+            <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Login</button>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden">
-        <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
-            <h1 class="text-xl font-bold text-blue-600">PDF Reader</h1>
-            <div class="flex items-center gap-4">
-                <span id="credit-display" class="bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-bold border border-green-200">
-                    Downloads Left: <span id="credit-count">5</span>
-                </span>
-                <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">U</div>
-                <button onclick="logout()" class="text-red-500 text-sm font-bold">Logout</button>
+    <div id="dashboard" class="hidden max-w-5xl mx-auto">
+        <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+            <h1 class="text-xl font-bold text-sky-400">SNT VAULT</h1>
+            <div class="bg-sky-500/20 px-4 py-1 rounded-full text-xs font-bold">
+                Downloads Left: <span id="credit-count">5</span>
             </div>
         </header>
 
-        <main class="p-6 max-w-6xl mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <h2 class="text-2xl font-bold text-gray-800">Available PDF Library</h2>
-                <button onclick="openPayment()" class="bg-yellow-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-yellow-600 shadow-md transition">
-                    + Add Credits (Pay via UPI)
-                </button>
-            </div>
-            
-            <div id="pdf-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                </div>
-        </main>
+        <div id="pdf-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
     </div>
 
-    <div id="pay-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white p-6 rounded-3xl text-center max-w-xs w-full shadow-2xl">
-            <h3 class="font-bold text-xl mb-2">Recharge Wallet</h3>
-            <p class="text-gray-500 text-xs mb-4">Scan & Pay to get 10 more downloads</p>
-            <img id="qr-code" src="" class="mx-auto mb-4 border p-2 rounded-xl">
-            <p class="text-sm font-mono font-bold text-blue-600 bg-blue-50 py-2 rounded">mandavikaushal913@okaxis</p>
-            <button onclick="confirmPayment()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mt-4">Confirm Payment</button>
-            <button onclick="openPayment()" class="text-gray-400 text-xs mt-4 block mx-auto">Cancel</button>
+    <div id="pay-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50">
+        <div class="bg-white text-black p-8 rounded-3xl text-center max-w-xs w-full">
+            <h3 class="font-bold text-lg mb-4">Limit Reached!</h3>
+            <img id="qr-code" src="" class="mx-auto mb-4">
+            <p class="text-[10px] text-gray-500 mb-4 font-bold">Pay ₹100 for Unlimited Access</p>
+            <button onclick="addCredits()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">I have paid</button>
         </div>
     </div>
 
@@ -63,13 +47,13 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
-            authDomain: "pdf-reader-650f5.firebaseapp.com",
-            databaseURL: "https://pdf-reader-650f5-default-rtdb.firebaseio.com",
-            projectId: "pdf-reader-650f5",
-            storageBucket: "pdf-reader-650f5.firebasestorage.app",
-            messagingSenderId: "163058397387",
-            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
+            apiKey: "AIzaSyAOQtM_XYLqPgxMK1XBdfl0m7KoAseZRCA",
+            authDomain: "snt-computer-institute.firebaseapp.com",
+            databaseURL: "https://snt-computer-institute-default-rtdb.firebaseio.com",
+            projectId: "snt-computer-institute",
+            storageBucket: "snt-computer-institute.firebasestorage.app",
+            messagingSenderId: "117580784781",
+            appId: "1:117580784781:web:73ba19d2d008beb3a5eec4"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -77,37 +61,26 @@
         let credits = 5;
 
         function login() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            if(user && pass) {
-                document.getElementById('login-section').classList.add('hidden');
+            if(document.getElementById('user').value) {
+                document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
-                loadPDFs();
-            } else { alert("Please enter details"); }
+                loadData();
+            }
         }
 
-        function loadPDFs() {
-            const container = document.getElementById('pdf-list');
-            container.innerHTML = '<p class="text-gray-500">Loading library...</p>';
-
-            db.ref('myPDFs').on('value', (snapshot) => {
-                container.innerHTML = '';
-                const data = snapshot.val();
-                if(data) {
-                    Object.keys(data).reverse().forEach(key => {
-                        const pdf = data[key];
-                        container.innerHTML += `
-                            <div class="bg-white p-5 rounded-2xl shadow-sm border hover:shadow-md transition group">
-                                <div class="h-32 bg-blue-50 rounded-xl mb-4 flex items-center justify-center text-4xl group-hover:scale-105 transition">📄</div>
-                                <h3 class="font-bold text-gray-800 truncate">${pdf.name}</h3>
-                                <p class="text-xs text-gray-400 mt-1 h-8 overflow-hidden">${pdf.desc}</p>
-                                <button onclick="downloadPDF('${pdf.pdf}')" class="w-full bg-blue-600 text-white py-2 rounded-lg mt-4 font-bold shadow-md hover:bg-blue-700 transition">Download</button>
-                            </div>
-                        `;
-                    });
-                } else {
-                    container.innerHTML = '<p class="text-gray-400">No PDFs available. Please upload from Admin.</p>';
-                }
+        function loadData() {
+            db.ref('myPDFs').on('value', snap => {
+                const list = document.getElementById('pdf-list');
+                list.innerHTML = '';
+                snap.forEach(child => {
+                    const pdf = child.val();
+                    list.innerHTML += `
+                        <div class="pdf-card">
+                            <h3 class="font-bold truncate">${pdf.name}</h3>
+                            <p class="text-xs text-gray-400 my-2">${pdf.category}</p>
+                            <button onclick="downloadPDF('${pdf.pdf}')" class="w-full bg-sky-500 text-slate-900 py-2 rounded-lg font-bold mt-2">Download</button>
+                        </div>`;
+                });
             });
         }
 
@@ -115,30 +88,23 @@
             if(credits > 0) {
                 credits--;
                 document.getElementById('credit-count').innerText = credits;
-                const link = document.createElement('a');
-                link.href = base64;
-                link.download = "Study_Notes.pdf";
-                link.click();
+                const a = document.createElement('a');
+                a.href = base64;
+                a.download = "Notes_SNT.pdf";
+                a.click();
             } else {
-                alert("Out of credits! Please recharge via UPI.");
-                openPayment();
+                const upi = "mandavikaushal913@okaxis";
+                document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${upi}&am=100`;
+                document.getElementById('pay-modal').classList.remove('hidden');
             }
         }
 
-        function openPayment() {
-            const upi = "mandavikaushal913@okaxis";
-            document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${upi}&pn=SNT_Institute&am=100&cu=INR`;
-            document.getElementById('pay-modal').classList.toggle('hidden');
-        }
-
-        function confirmPayment() {
-            credits += 10;
+        function addCredits() {
+            credits += 50;
             document.getElementById('credit-count').innerText = credits;
-            alert("Payment Successful! 10 Credits added.");
             document.getElementById('pay-modal').classList.add('hidden');
+            alert("Credits updated!");
         }
-
-        function logout() { location.reload(); }
     </script>
 </body>
 </html>
