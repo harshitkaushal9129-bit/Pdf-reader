@@ -1,73 +1,38 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Admin - Heavy PDF (10MB)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Realtime PDF Viewer</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        iframe { width: 100%; height: 100vh; border: none; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">
-    <div class="bg-slate-800 p-8 rounded-2xl w-full max-w-md border border-slate-700 shadow-2xl">
-        <h2 class="text-2xl font-bold mb-6 text-center text-indigo-400">📤 10MB PDF Uploader</h2>
-        <form id="pdfForm">
-            <input type="file" id="pdfFile" accept="application/pdf" class="w-full mb-4 text-sm" required>
-            <input type="text" id="pdfName" placeholder="PDF Title" class="w-full p-3 mb-4 bg-slate-900 rounded-xl border border-slate-700" required>
-            <button type="submit" id="submitBtn" class="w-full bg-indigo-600 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">UPLOAD PDF</button>
-            <div id="status" class="hidden mt-4 text-center">
-                <div class="w-full bg-gray-700 rounded-full h-2.5 mb-2">
-                    <div id="p-bar" class="bg-indigo-500 h-2.5 rounded-full" style="width: 0%"></div>
-                </div>
-                <p id="status-text" class="text-xs text-indigo-300">Processing file...</p>
-            </div>
-        </form>
-    </div>
+<body>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <div id="msg" style="text-align:center; margin-top:20px;">Waiting for PDF from Database...</div>
+    <iframe id="viewer"></iframe>
 
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
             projectId: "pdf-reader-650f5",
-            storageBucket: "pdf-reader-650f5.firebasestorage.app",
-            messagingSenderId: "163058397387",
+            databaseURL: "https://pdf-reader-650f5-default-rtdb.firebaseio.com",
             appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
         };
+
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const database = firebase.database();
 
-        document.getElementById('pdfForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const file = document.getElementById('pdfFile').files[0];
-            const name = document.getElementById('pdfName').value;
-            const btn = document.getElementById('submitBtn');
-            const pBar = document.getElementById('p-bar');
-            
-            if (file.size > 10 * 1024 * 1024) { alert("Max 10MB Allowed!"); return; }
-
-            btn.disabled = true;
-            document.getElementById('status').classList.remove('hidden');
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const base64 = event.target.result;
-                const pdfId = Date.now();
-                
-                // Saving data to Realtime Database
-                db.ref('allPDFs/' + pdfId).set({
-                    name: name,
-                    pdfData: base64, // Storing full string (Optimized for up to 10MB)
-                    date: new Date().toLocaleString()
-                }).then(() => {
-                    pBar.style.width = "100%";
-                    alert("PDF Uploaded Successfully!");
-                    location.reload();
-                }).catch(err => {
-                    alert("Database Error: Entry too heavy. Please compress PDF.");
-                    btn.disabled = false;
-                });
-            };
-            reader.readAsDataURL(file);
+        // Database ko monitor karein
+        database.ref('sharedPDF').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.pdfData) {
+                document.getElementById('msg').style.display = 'none';
+                document.getElementById('viewer').src = data.pdfData;
+            }
         });
     </script>
 </body>
