@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Vault - Reader</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #38bdf8; --bg: #0f172a; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; padding: 15px; }
@@ -19,34 +19,34 @@
 
     <div class="max-w-4xl mx-auto">
         <header class="flex justify-between items-center mb-6">
-            <h1 class="text-xl font-black italic tracking-tighter text-sky-500 underline">PDF VAULT</h1>
-            <div id="credit-display" class="bg-sky-500/20 text-sky-400 px-4 py-1 rounded-full text-xs font-bold border border-sky-500/30">
-                Downloads Left: <span id="credit-count">5</span>
+            <h1 class="text-xl font-black italic text-sky-500">PDF VAULT</h1>
+            <div class="bg-sky-500/20 text-sky-400 px-4 py-1 rounded-full text-xs font-bold border border-sky-500/30">
+                Limit: <span id="credit-count">5</span> Downloads Left
             </div>
         </header>
 
         <div class="glass p-5 rounded-3xl mb-8 flex items-center justify-between border-l-4 border-sky-500">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-sky-500 rounded-full flex items-center justify-center text-xl font-bold">U</div>
+                <div class="w-12 h-12 bg-sky-500 text-slate-900 rounded-full flex items-center justify-center text-xl font-bold">U</div>
                 <div>
-                    <h2 class="text-lg font-black leading-tight">Welcome, User</h2>
-                    <p class="text-slate-400 text-[10px] uppercase font-bold">Free Tier Account</p>
+                    <h2 class="text-lg font-black leading-tight">Student Dashboard</h2>
+                    <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">SNT Institute Access</p>
                 </div>
             </div>
-            <button onclick="openPayment()" class="bg-orange-500 text-[10px] font-black px-4 py-2 rounded-xl">RECHARGE</button>
+            <button onclick="openPayment()" class="bg-orange-500 text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-lg">RECHARGE</button>
         </div>
 
         <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
     </div>
 
-    <div id="pay-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-50">
-        <div class="bg-white text-black p-8 rounded-3xl text-center max-w-xs w-full">
-            <h3 class="font-bold text-lg mb-4">Recharge Credits</h3>
-            <img id="qr-code" src="" class="mx-auto mb-4 border p-2">
-            <p class="text-xs font-bold text-gray-500">Scan & Pay ₹50 to get 10 more downloads</p>
-            <p class="text-sm font-mono my-2 text-blue-600">mandavikaushal913@okaxis</p>
-            <button onclick="confirmPayment()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mt-4">Confirm Payment</button>
-            <button onclick="openPayment()" class="text-gray-400 text-xs mt-4">Close</button>
+    <div id="pay-modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-50 backdrop-blur-sm">
+        <div class="bg-white text-black p-8 rounded-3xl text-center max-w-xs w-full shadow-2xl">
+            <h3 class="font-bold text-xl mb-2">Recharge Wallet</h3>
+            <p class="text-gray-500 text-xs mb-4">Pay ₹100 for Unlimited Access</p>
+            <img id="qr-code" src="" class="mx-auto mb-4 border-4 border-gray-100 p-2 rounded-xl">
+            <p class="text-xs font-mono font-bold text-blue-600 bg-blue-50 py-2 rounded">mandavikaushal913@okaxis</p>
+            <button onclick="confirmPayment()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mt-4 shadow-lg">Payment Done</button>
+            <button onclick="openPayment()" class="text-gray-400 text-xs mt-4 block mx-auto">Close</button>
         </div>
     </div>
 
@@ -67,7 +67,7 @@
 
         let credits = 5;
 
-        // Load All PDFs (No Filteration)
+        // Fetch All PDFs
         db.ref('myPDFs').on('value', (snap) => {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
@@ -79,42 +79,39 @@
                 div.className = 'pdf-card';
                 div.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
-                        <span class="bg-sky-500/10 text-sky-400 px-2 py-1 rounded text-[10px] font-bold uppercase">${pdf.category}</span>
+                        <span class="bg-sky-500/10 text-sky-400 px-2 py-1 rounded text-[10px] font-bold underline uppercase">${pdf.category}</span>
                         <i class="fas fa-file-pdf text-red-500 text-xl"></i>
                     </div>
                     <h3 class="font-bold text-sm mb-1 truncate">${pdf.name}</h3>
-                    <p class="text-[10px] text-slate-400 line-clamp-2">${pdf.desc}</p>
-                    <button onclick="handleDownload('${pdf.pdf}')" class="btn-view">VIEW NOTES</button>
+                    <p class="text-[10px] text-slate-400 line-clamp-2 h-7">${pdf.desc}</p>
+                    <button onclick="handleDownload('${pdf.pdf}')" class="btn-view">VIEW / DOWNLOAD</button>
                 `;
                 grid.appendChild(div);
             });
         });
 
-        function handleDownload(base64) {
+        function handleDownload(fileUrl) {
             if (credits > 0) {
                 credits--;
                 document.getElementById('credit-count').innerText = credits;
-                const link = document.createElement('a');
-                link.href = base64;
-                link.download = "notes.pdf";
-                link.click();
+                window.open(fileUrl, '_blank');
             } else {
-                alert("Download limit khatam! Please payment karein.");
+                alert("Download limit reached! Please recharge.");
                 openPayment();
             }
         }
 
         function openPayment() {
             const upi = "mandavikaushal913@okaxis";
-            document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${upi}&pn=PDFVault&am=50&cu=INR`;
+            document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${upi}&pn=SNT_Reader&am=100&cu=INR`;
             document.getElementById('pay-modal').classList.toggle('hidden');
         }
 
         function confirmPayment() {
-            credits += 10;
+            credits += 50; // Recharge 50 more
             document.getElementById('credit-count').innerText = credits;
-            alert("Payment Successful! 10 Credits added.");
-            openPayment();
+            alert("Success! 50 Downloads added.");
+            document.getElementById('pay-modal').classList.add('hidden');
         }
     </script>
 </body>
