@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNT PDF Vault</title>
+    <title>PDF Vault Pro</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192">
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,32 +18,25 @@
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; margin: 0; overflow-x: hidden; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; transition: 0.3s; }
-        .pdf-card:hover { border-color: var(--primary); transform: translateY(-3px); }
         .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; }
-        #login-screen { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--primary); }
-        .nav-item i { font-size: 20px; margin-bottom: 4px; }
-        
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <div id="login-screen">
+    <div id="login-screen" class="fixed inset-0 bg-[#0f172a] z-[1000] flex items-center justify-center">
         <div class="p-8 glass rounded-3xl text-center max-w-sm mx-4 border border-white/10">
-            <div class="w-20 h-20 bg-sky-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i class="fab fa-google text-sky-400 text-4xl"></i>
-            </div>
-            <h2 class="text-2xl font-black mb-2 italic">SNT <span class="text-sky-500">VAULT</span></h2>
-            <p class="text-slate-400 text-sm mb-8">Notes access karne ke liye Google se sign-in karein.</p>
-            <button onclick="googleLogin()" class="flex items-center justify-center gap-3 w-full bg-white text-slate-900 font-bold py-3 px-4 rounded-xl hover:bg-slate-100 transition shadow-lg">
+            <h2 class="text-3xl font-black mb-2 italic text-sky-400">PDF <span class="text-white">VAULT</span></h2>
+            <p class="text-slate-400 text-sm mb-8">Sign in to access your premium notes.</p>
+            <button onclick="googleLogin()" class="flex items-center justify-center gap-3 w-full bg-white text-slate-900 font-bold py-3 px-4 rounded-xl shadow-lg hover:scale-105 transition">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5">
-                Sign in with Google
+                Continue with Google
             </button>
         </div>
     </div>
@@ -54,61 +45,57 @@
         <main id="home-tab" class="tab-content active max-w-4xl mx-auto p-4 pb-32">
             <header class="flex justify-between items-center py-6 px-2">
                 <div>
-                    <h1 class="text-2xl font-black">SNT <span class="text-sky-500">VAULT</span></h1>
-                    <p class="text-xs text-slate-400">Welcome back, <span id="welcome-name">Student</span>!</p>
+                    <h1 class="text-2xl font-black">PDF <span class="text-sky-500">VAULT</span></h1>
+                    <p class="text-xs text-slate-400">Welcome, <span id="welcome-name">Student</span></p>
                 </div>
-                <button onclick="installApp()" id="install-btn" class="hidden w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30">
-                    <i class="fas fa-download text-green-400"></i>
-                </button>
+                <button onclick="installApp()" id="install-btn" class="hidden bg-sky-500/10 text-sky-400 p-2 rounded-full border border-sky-500/20"><i class="fas fa-download"></i></button>
             </header>
-
-            <h3 class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest px-2">Available PDF Notes</h3>
             <div id="pdf-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
         </main>
 
         <main id="profile-tab" class="tab-content max-w-4xl mx-auto p-6 pb-32">
             <div class="glass rounded-[32px] p-8 text-center border-b-4 border-sky-500">
-                <img id="user-img" src="" class="w-24 h-24 rounded-full mx-auto border-4 border-sky-500 p-1 shadow-2xl mb-4">
-                <h2 id="user-name" class="text-2xl font-black">Loading...</h2>
-                <p id="user-email" class="text-slate-400 text-sm mb-6"></p>
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-slate-800/50 p-4 rounded-2xl">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Status</p>
-                        <p id="user-status" class="text-sky-400 font-bold">Free User</p>
+                <img id="user-img" src="" class="w-20 h-20 rounded-full mx-auto border-4 border-sky-500 p-1 mb-4 shadow-xl">
+                <h2 id="user-name" class="text-xl font-bold">Loading...</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                        <p class="text-[10px] text-slate-400 uppercase font-bold">Opened</p>
+                        <p id="used-count" class="text-sky-400 text-xl font-black">0</p>
                     </div>
-                    <div class="bg-slate-800/50 p-4 rounded-2xl">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold">Phone</p>
-                        <p id="user-phone" class="text-white text-xs font-bold">Not Linked</p>
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                        <p class="text-[10px] text-slate-400 uppercase font-bold">Limit</p>
+                        <p id="total-limit" class="text-white text-xl font-black">5</p>
                     </div>
                 </div>
-                <button onclick="logout()" class="w-full bg-red-500/10 text-red-500 py-4 rounded-2xl font-bold flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> Logout from App
-                </button>
+
+                <div class="mt-8 bg-sky-500/5 p-6 rounded-3xl border border-sky-500/20">
+                    <h3 class="text-sm font-bold text-sky-400 mb-4">RECHARGE LIMIT</h3>
+                    <div class="flex gap-2 mb-4">
+                        <input type="number" id="pay-amount" placeholder="Enter Amount" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center font-bold text-sky-400 focus:outline-none focus:border-sky-500">
+                    </div>
+                    <button onclick="processUPI()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition">
+                        PAY & UNLOCK
+                    </button>
+                    <p class="text-[9px] text-slate-500 mt-3 italic">Note: ₹10=10 PDF, ₹35=40 PDF, ₹50=60 PDF</p>
+                </div>
+
+                <div class="mt-8 border-t border-white/5 pt-6">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-4">Developer Support</p>
+                    <div class="flex gap-3">
+                        <a href="tel:+919129191898" class="flex-1 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold border border-white/5"><i class="fas fa-phone-alt mr-2"></i> Call</a>
+                        <a href="https://wa.me/919129191898" class="flex-1 bg-green-600/20 text-green-400 py-3 rounded-xl text-xs font-bold border border-green-500/20"><i class="fab fa-whatsapp mr-2"></i> WhatsApp</a>
+                    </div>
+                </div>
+
+                <button onclick="logout()" class="mt-8 text-red-500 text-[10px] font-bold uppercase tracking-widest opacity-60">Sign Out</button>
             </div>
         </main>
 
         <nav class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home-tab', this)">
-                <i class="fas fa-home"></i>
-                <span>HOME</span>
-            </div>
-            <div class="nav-item" onclick="switchTab('profile-tab', this)">
-                <i class="fas fa-user-circle"></i>
-                <span>PROFILE</span>
-            </div>
+            <div class="nav-item active" onclick="switchTab('home-tab', this)"><i class="fas fa-book-open"></i><span>NOTES</span></div>
+            <div class="nav-item" onclick="switchTab('profile-tab', this)"><i class="fas fa-user-circle"></i><span>PROFILE</span></div>
         </nav>
-    </div>
-
-    <div id="payment-bar" class="fixed bottom-20 left-4 right-4 glass p-5 rounded-3xl border border-red-500/30 hidden z-50">
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <h4 class="text-red-400 font-bold text-sm">Limit Reached! 🛑</h4>
-                <p class="text-[10px] text-slate-300">Pay ₹99 to unlock lifetime access.</p>
-            </div>
-            <a href="upi://pay?pa=mandavikaushal913@okaxis&pn=SNT%20Institute&am=99&cu=INR" class="bg-green-500 text-white px-4 py-2 rounded-xl font-black text-xs">
-                UNLOCK
-            </a>
-        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -116,64 +103,29 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-        // 1. PWA Registration & Install Logic
-        let deferredPrompt;
-        const installBtn = document.getElementById('install-btn');
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker failed', err));
-            });
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.classList.remove('hidden'); // Show button when ready
-        });
-
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        installBtn.classList.add('hidden');
-                    }
-                    deferredPrompt = null;
-                });
-            }
-        }
-    </script>
+        // PWA Registry
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+            </script>
     <script>
-        // 2. Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
             databaseURL: "https://pdf-reader-650f5-default-rtdb.firebaseio.com",
             projectId: "pdf-reader-650f5",
-            storageBucket: "pdf-reader-650f5.firebasestorage.app",
-            messagingSenderId: "163058397387",
             appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
 
-        let viewCount = parseInt(localStorage.getItem('pdf_views')) || 0;
-        let isPaidUser = false;
+        let userData = { views: 0, limit: 5 };
 
-        // 3. Auth Functions
+        // Auth Logic
         function googleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => alert(error.message));
+            auth.signInWithPopup(provider);
         }
-
-        function logout() {
-            auth.signOut().then(() => location.reload());
-        }
+        function logout() { auth.signOut().then(() => location.reload()); }
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -182,46 +134,42 @@
                 document.getElementById('user-img').src = user.photoURL;
                 document.getElementById('user-name').innerText = user.displayName;
                 document.getElementById('welcome-name').innerText = user.displayName.split(' ')[0];
-                document.getElementById('user-email').innerText = user.email;
 
                 db.ref('students/' + user.uid).on('value', (snap) => {
-                    const data = snap.val();
-                    document.getElementById('user-phone').innerText = data?.phone || "Not Linked";
-                    isPaidUser = data?.isPaid || false;
-                    document.getElementById('user-status').innerText = isPaidUser ? "Premium Member" : "Free User";
-                    if(isPaidUser) document.getElementById('user-status').className = "text-green-400 font-bold";
-                    loadPDFs();
+                    userData = snap.val() || { views: 0, limit: 5 };
+                    document.getElementById('used-count').innerText = userData.views;
+                    document.getElementById('total-limit').innerText = userData.limit;
                 });
-            } else {
-                document.getElementById('login-screen').style.display = 'flex';
-                document.getElementById('dashboard').classList.add('hidden');
+                loadPDFs();
             }
         });
 
-        // 4. UI Functions
-        function switchTab(tabId, el) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            el.classList.add('active');
+        // Dynamic Payment Calculation
+        function processUPI() {
+            const amount = document.getElementById('pay-amount').value;
+            if (!amount || amount < 1) { alert("Please enter a valid amount."); return; }
+            
+            let upiLink = `upi://pay?pa=mandavikaushal913@okaxis&pn=SNT%20Vault&am=${amount}&cu=INR`;
+            window.location.href = upiLink;
+
+            alert("Payment karne ke baad, Screenshot Developer (+91 9129191898) ko bhejein limit turant badhane ke liye.");
         }
 
+        // PDF Grid
         function loadPDFs() {
             db.ref('myPDFs').on('value', (snap) => {
                 const grid = document.getElementById('pdf-grid');
                 grid.innerHTML = '';
-                const data = snap.val() || {};
-                Object.keys(data).reverse().forEach(key => {
-                    const pdf = data[key];
+                snap.forEach(child => {
+                    const pdf = child.val();
                     const div = document.createElement('div');
                     div.className = 'pdf-card';
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-4">
-                            <span class="text-[9px] font-bold bg-sky-500/10 text-sky-400 px-2 py-1 rounded uppercase tracking-tighter">${pdf.category}</span>
-                            <i class="fas fa-file-pdf text-red-500 text-xl"></i>
+                            <span class="text-[9px] font-bold bg-sky-500/10 text-sky-400 px-2 py-1 rounded uppercase">${pdf.category || 'Notes'}</span>
+                            <i class="fas fa-file-pdf text-red-500"></i>
                         </div>
                         <h3 class="font-bold text-sm truncate">${pdf.name}</h3>
-                        <p class="text-[10px] text-slate-400 mt-1 line-clamp-1">${pdf.desc || 'No description available.'}</p>
                         <button onclick="openPDF('${pdf.pdf}')" class="btn-view">VIEW NOTES</button>
                     `;
                     grid.appendChild(div);
@@ -229,17 +177,58 @@
             });
         }
 
+        // PDF View Logic (Fixed Blob)
         function openPDF(base64) {
-            if (viewCount >= 5 && !isPaidUser) {
-                document.getElementById('payment-bar').classList.remove('hidden');
+            if (userData.views >= userData.limit) {
+                alert("Limit Reached! Please recharge in Profile section.");
+                switchTab('profile-tab', document.querySelectorAll('.nav-item')[1]);
                 return;
             }
-            if(!isPaidUser) {
-                viewCount++;
-                localStorage.setItem('pdf_views', viewCount);
+
+            db.ref('students/' + auth.currentUser.uid).update({ views: userData.views + 1 });
+
+            try {
+                const blob = base64ToBlob(base64);
+                const url = URL.createObjectURL(blob);
+                const win = window.open();
+                if (win) {
+                    win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+                } else {
+                    location.href = url;
+                }
+            } catch (e) {
+                alert("Error opening PDF.");
             }
-            const win = window.open();
-            win.document.write('<iframe src="' + base64 + '" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>');
+        }
+
+        function base64ToBlob(base64) {
+            const parts = base64.split(';base64,');
+            const contentType = parts[0].split(':')[1];
+            const raw = window.atob(parts[1]);
+            const rawLength = raw.length;
+            const uInt8Array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; ++i) { uInt8Array[i] = raw.charCodeAt(i); }
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            el.classList.add('active');
+        }
+
+        // PWA Install Prompt
+        let defPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); defPrompt = e;
+            document.getElementById('install-btn').classList.remove('hidden');
+        });
+        function installApp() {
+            if (defPrompt) {
+                defPrompt.prompt();
+                defPrompt.userChoice.then(() => document.getElementById('install-btn').classList.add('hidden'));
+            }
         }
     </script>
 </body>
