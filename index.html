@@ -1,47 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Reader | Login & Dashboard</title>
+    <title>SNT PDF Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        body { font-family: 'Poppins', sans-serif; }
         .hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <div id="login-section" class="flex flex-col items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-lg shadow-md w-96">
-            <h2 class="text-2xl font-bold mb-6 text-center">Login to PDF Reader</h2>
-            <input type="text" id="username" placeholder="Email or Mobile" class="w-full p-2 mb-4 border rounded">
-            <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
-            <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+    <div id="login-section" class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">SNT Institute Login</h2>
+            <input type="text" id="username" placeholder="Email or Mobile" class="w-full p-3 mb-4 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+            <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-6 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+            <button onclick="login()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">Login</button>
         </div>
     </div>
 
     <div id="dashboard" class="hidden">
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
             <h1 class="text-xl font-bold text-blue-600">PDF Reader</h1>
             <div class="flex items-center gap-4">
-                <span id="credit-count" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">Downloads Left: 5</span>
-                <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center border border-blue-500">👤</div>
-                <button onclick="logout()" class="text-red-500 text-sm">Logout</button>
+                <span id="credit-display" class="bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-bold border border-green-200">
+                    Downloads Left: <span id="credit-count">5</span>
+                </span>
+                <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">U</div>
+                <button onclick="logout()" class="text-red-500 text-sm font-bold">Logout</button>
             </div>
         </header>
 
-        <main class="p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold">Available PDFs</h2>
-                <button onclick="addPayment()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-sm">+ Add Credits (Pay)</button>
+        <main class="p-6 max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h2 class="text-2xl font-bold text-gray-800">Available PDF Library</h2>
+                <button onclick="openPayment()" class="bg-yellow-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-yellow-600 shadow-md transition">
+                    + Add Credits (Pay via UPI)
+                </button>
             </div>
             
-            <div id="pdf-list" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div id="pdf-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 </div>
         </main>
     </div>
 
+    <div id="pay-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-3xl text-center max-w-xs w-full shadow-2xl">
+            <h3 class="font-bold text-xl mb-2">Recharge Wallet</h3>
+            <p class="text-gray-500 text-xs mb-4">Scan & Pay to get 10 more downloads</p>
+            <img id="qr-code" src="" class="mx-auto mb-4 border p-2 rounded-xl">
+            <p class="text-sm font-mono font-bold text-blue-600 bg-blue-50 py-2 rounded">mandavikaushal913@okaxis</p>
+            <button onclick="confirmPayment()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mt-4">Confirm Payment</button>
+            <button onclick="openPayment()" class="text-gray-400 text-xs mt-4 block mx-auto">Cancel</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
+            authDomain: "pdf-reader-650f5.firebaseapp.com",
+            databaseURL: "https://pdf-reader-650f5-default-rtdb.firebaseio.com",
+            projectId: "pdf-reader-650f5",
+            storageBucket: "pdf-reader-650f5.firebasestorage.app",
+            messagingSenderId: "163058397387",
+            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         let credits = 5;
 
         function login() {
@@ -56,38 +88,54 @@
 
         function loadPDFs() {
             const container = document.getElementById('pdf-list');
-            const pdfs = JSON.parse(localStorage.getItem('pdfs')) || [];
-            container.innerHTML = pdfs.length ? '' : '<p class="text-gray-500">No PDFs available. Add from Admin panel.</p>';
-            
-            pdfs.forEach((pdf, index) => {
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
-                        <div class="h-40 bg-gray-200 flex items-center justify-center mb-4 rounded">📄</div>
-                        <h3 class="font-bold">${pdf.title}</h3>
-                        <p class="text-sm text-gray-500 mb-4">${pdf.desc}</p>
-                        <button onclick="downloadPDF(${index})" class="w-full bg-blue-500 text-white py-1 rounded">Download</button>
-                    </div>
-                `;
+            container.innerHTML = '<p class="text-gray-500">Loading library...</p>';
+
+            db.ref('myPDFs').on('value', (snapshot) => {
+                container.innerHTML = '';
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).reverse().forEach(key => {
+                        const pdf = data[key];
+                        container.innerHTML += `
+                            <div class="bg-white p-5 rounded-2xl shadow-sm border hover:shadow-md transition group">
+                                <div class="h-32 bg-blue-50 rounded-xl mb-4 flex items-center justify-center text-4xl group-hover:scale-105 transition">📄</div>
+                                <h3 class="font-bold text-gray-800 truncate">${pdf.name}</h3>
+                                <p class="text-xs text-gray-400 mt-1 h-8 overflow-hidden">${pdf.desc}</p>
+                                <button onclick="downloadPDF('${pdf.pdf}')" class="w-full bg-blue-600 text-white py-2 rounded-lg mt-4 font-bold shadow-md hover:bg-blue-700 transition">Download</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-gray-400">No PDFs available. Please upload from Admin.</p>';
+                }
             });
         }
 
-        function downloadPDF(index) {
+        function downloadPDF(base64) {
             if(credits > 0) {
                 credits--;
-                document.getElementById('credit-count').innerText = `Downloads Left: ${credits}`;
-                alert("Downloading PDF... Remaining Credits: " + credits);
+                document.getElementById('credit-count').innerText = credits;
+                const link = document.createElement('a');
+                link.href = base64;
+                link.download = "Study_Notes.pdf";
+                link.click();
             } else {
-                alert("No credits left! Please make a payment to download more.");
+                alert("Out of credits! Please recharge via UPI.");
+                openPayment();
             }
         }
 
-        function addPayment() {
-            let amount = prompt("Enter amount to pay (e.g., 100 for 10 downloads):");
-            if(amount) {
-                credits += 10;
-                document.getElementById('credit-count').innerText = `Downloads Left: ${credits}`;
-                alert("Payment Successful! 10 downloads added.");
-            }
+        function openPayment() {
+            const upi = "mandavikaushal913@okaxis";
+            document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${upi}&pn=SNT_Institute&am=100&cu=INR`;
+            document.getElementById('pay-modal').classList.toggle('hidden');
+        }
+
+        function confirmPayment() {
+            credits += 10;
+            document.getElementById('credit-count').innerText = credits;
+            alert("Payment Successful! 10 Credits added.");
+            document.getElementById('pay-modal').classList.add('hidden');
         }
 
         function logout() { location.reload(); }
