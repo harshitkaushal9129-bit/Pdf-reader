@@ -1,104 +1,52 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - PDF Uploader</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root { --primary: #6366f1; --bg: #0f172a; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e293b; padding: 2rem; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .form-group { margin-bottom: 1.2rem; text-align: left; }
-        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; font-weight: 600; }
-        input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #334155; background: #0f172a; color: white; box-sizing: border-box; outline: none; }
-        button { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        #progress-bar { width: 0%; height: 5px; background: #6366f1; border-radius: 10px; margin-top: 10px; transition: 0.1s; }
-    </style>
+    <title>Admin Panel - Add PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="card">
-        <h2 style="margin-bottom: 20px;">📤 Admin Panel</h2>
-        <form id="pdfForm">
-            <div class="form-group">
-                <label>Category</label>
-                <select id="pdfCategory">
-                    <option value="Computer Course">Computer Course</option>
-                    <option value="Programming">Programming</option>
-                    <option value="General Notes">General Notes</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Select PDF File</label>
-                <input type="file" id="pdfFile" accept="application/pdf" required>
-            </div>
-            <div class="form-group">
-                <label>Brief Description</label>
-                <textarea id="pdfDesc" rows="2" placeholder="Write about these notes..." required></textarea>
-            </div>
-            <button type="submit" id="submitBtn">UPLOAD PDF</button>
-            <div id="progress-container" style="display:none; background: #0f172a; margin-top:15px; border-radius:10px;">
-                <div id="progress-bar"></div>
-            </div>
-            <p id="status" style="display:none; font-size: 11px; color: #6366f1; margin-top: 10px; font-weight: bold;">Uploading to server...</p>
-        </form>
+<body class="bg-gray-900 text-white flex flex-col items-center p-10">
+
+    <h1 class="text-3xl font-bold mb-8">Admin Panel - Upload PDF</h1>
+
+    <div class="bg-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md">
+        <label class="block mb-2">PDF Title</label>
+        <input type="text" id="pdf-title" class="w-full p-2 mb-4 rounded bg-gray-700 border-none">
+        
+        <label class="block mb-2">Description</label>
+        <textarea id="pdf-desc" class="w-full p-2 mb-4 rounded bg-gray-700 border-none"></textarea>
+        
+        <button onclick="addPDF()" class="w-full bg-green-600 py-2 rounded font-bold hover:bg-green-700">Add PDF to Library</button>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <div class="mt-10 w-full max-w-md">
+        <h2 class="text-xl mb-4">Uploaded List:</h2>
+        <ul id="admin-list" class="space-y-2"></ul>
+    </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
-            authDomain: "pdf-reader-650f5.firebaseapp.com",
-            projectId: "pdf-reader-650f5",
-            storageBucket: "pdf-reader-650f5.firebasestorage.app",
-            messagingSenderId: "163058397387",
-            appId: "1:163058397387:web:4cc94d2921706d1bf16b4e"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const storage = firebase.storage();
+        function addPDF() {
+            const title = document.getElementById('pdf-title').value;
+            const desc = document.getElementById('pdf-desc').value;
 
-        document.getElementById('pdfForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const file = document.getElementById('pdfFile').files[0];
-            const btn = document.getElementById('submitBtn');
-            const status = document.getElementById('status');
-            const pBar = document.getElementById('progress-bar');
-            const pContainer = document.getElementById('progress-container');
+            if(title && desc) {
+                let pdfs = JSON.parse(localStorage.getItem('pdfs')) || [];
+                pdfs.push({ title, desc });
+                localStorage.setItem('pdfs', JSON.stringify(pdfs));
+                
+                alert("PDF Added Successfully!");
+                document.getElementById('pdf-title').value = '';
+                document.getElementById('pdf-desc').value = '';
+                showList();
+            } else { alert("Fill all fields"); }
+        }
 
-            btn.disabled = true;
-            status.style.display = "block";
-            pContainer.style.display = "block";
-
-            // Storage Upload
-            const storageRef = storage.ref('pdfs/' + Date.now() + "_" + file.name);
-            const uploadTask = storageRef.put(file);
-
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    pBar.style.width = progress + "%";
-                }, 
-                (err) => { alert(err.message); btn.disabled = false; }, 
-                () => {
-                    uploadTask.snapshot.ref.getDownloadURL().then((url) => {
-                        // Realtime Database Link Save
-                        db.ref('myPDFs').push({
-                            name: file.name,
-                            pdf: url,
-                            desc: document.getElementById('pdfDesc').value,
-                            category: document.getElementById('pdfCategory').value,
-                            date: new Date().toLocaleString()
-                        }).then(() => {
-                            alert('PDF Published!');
-                            location.reload();
-                        });
-                    });
-                }
-            );
-        });
+        function showList() {
+            const list = document.getElementById('admin-list');
+            const pdfs = JSON.parse(localStorage.getItem('pdfs')) || [];
+            list.innerHTML = pdfs.map(p => `<li class="bg-gray-700 p-2 rounded">🔹 ${p.title}</li>`).join('');
+        }
+        showList();
     </script>
 </body>
 </html>
