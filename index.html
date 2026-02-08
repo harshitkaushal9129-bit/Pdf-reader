@@ -127,7 +127,44 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
     <script>
-        // --- A. SECURITY: Block Developer Tools ---
+
+        // --- SERVICE WORKER REGISTRATION LOGIC ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(registration => {
+                console.log('SW Registered with scope:', registration.scope);
+            })
+            .catch(err => {
+                console.log('SW Registration failed:', err);
+            });
+    });
+}
+
+// PWA Install Prompt Logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Install button dikhane ke liye
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) installBtn.classList.remove('hidden');
+});
+
+function installApp() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            }
+            deferredPrompt = null;
+            document.getElementById('install-btn').classList.add('hidden');
+        });
+    }
+}
+    </script>
+    <script>// --- A. SECURITY: Block Developer Tools ---
         document.onkeydown = function(e) {
             if(e.keyCode == 123) return false; // F12
             if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Inspect
