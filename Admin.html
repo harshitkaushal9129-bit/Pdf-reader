@@ -3,89 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Vault - Master Admin</title>
+    <title>Master Admin | PDF Vault Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
 </head>
-<body class="bg-[#0f172a] text-white font-sans min-h-screen">
+<body class="bg-[#0f172a] text-white min-h-screen">
 
-    <nav class="bg-slate-900 border-b border-white/10 p-4 sticky top-0 z-50">
+    <nav class="bg-slate-900 border-b border-white/5 p-5">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black text-sky-400 italic">ADMIN <span class="text-white font-normal">CONTROL</span></h1>
-            <div class="bg-sky-500/10 text-sky-400 px-4 py-1 rounded-full border border-sky-500/20">
-                <span id="user-count" class="font-bold">0</span> Users Active
+            <h1 class="text-xl font-black text-sky-400 italic">ADMIN <span class="text-white">DATABASE</span></h1>
+            <div id="user-count-badge" class="bg-sky-500/20 text-sky-400 px-4 py-1 rounded-full text-xs font-bold border border-sky-500/30">
+                0 Users
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <div class="lg:col-span-2">
-            <div class="flex gap-2 mb-4">
-                <input type="text" id="searchBox" onkeyup="searchUsers()" placeholder="Search by email..." class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-sky-500">
-            </div>
-
-            <div class="bg-slate-800/50 rounded-[30px] border border-white/5 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-900/50 text-[10px] uppercase tracking-widest text-slate-400">
+            <input type="text" id="adminSearch" onkeyup="filterUsers()" placeholder="Search by Email or UID..." class="w-full bg-slate-800 border border-white/10 rounded-2xl py-4 px-6 mb-6 outline-none focus:border-sky-500 transition-all">
+            
+            <div class="glass-card rounded-[30px] overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900/50 text-[10px] uppercase tracking-widest text-slate-400 border-b border-white/5">
                         <tr>
-                            <th class="p-4">User Email</th>
-                            <th class="p-4">Used/Limit</th>
-                            <th class="p-4 text-center">Action</th>
+                            <th class="p-5">User / UID</th>
+                            <th class="p-5">Access Status</th>
+                            <th class="p-5 text-center">Manage</th>
                         </tr>
                     </thead>
-                    <tbody id="user-table-body">
-                        </tbody>
+                    <tbody id="admin-user-list"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="lg:col-span-1">
-            <div id="editor-box" class="hidden bg-slate-800 border border-sky-500/30 p-6 rounded-[35px] sticky top-24 shadow-2xl">
+            <div id="editor-ui" class="hidden glass-card p-8 rounded-[40px] sticky top-10 border-t-4 border-sky-500 shadow-2xl">
                 <div class="text-center mb-6">
-                    <h2 class="text-sky-400 font-bold uppercase text-xs tracking-widest mb-1">Editing User</h2>
-                    <p id="edit-email" class="text-white font-bold truncate">---</p>
-                    <p id="edit-uid" class="text-[9px] text-slate-500 font-mono"></p>
+                    <h2 id="view-email" class="font-black text-lg text-white truncate">User Name</h2>
+                    <p id="view-uid" class="text-[10px] text-slate-500 font-mono mt-1"></p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="bg-slate-900 p-3 rounded-2xl text-center border border-white/5">
-                        <p class="text-[9px] text-slate-500 uppercase">Views</p>
-                        <p id="edit-views" class="text-xl font-bold">0</p>
+                <div id="sync-tool" class="mb-6 p-4 bg-slate-900/50 rounded-2xl border border-white/5">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase block mb-2">Sync Email with UID</label>
+                    <input type="text" id="manual-email-input" placeholder="Enter email address" class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2 px-3 text-sm mb-2 focus:border-sky-500 outline-none">
+                    <button onclick="saveEmailToUid()" class="w-full bg-sky-500/10 text-sky-400 py-2 rounded-xl text-[10px] font-bold border border-sky-500/20 hover:bg-sky-500 hover:text-white transition-all">
+                        UPDATE EMAIL MAPPING
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-slate-900 p-4 rounded-2xl text-center border border-white/5">
+                        <span class="text-[8px] text-slate-500 uppercase block mb-1">Used Views</span>
+                        <span id="view-used" class="text-xl font-black">0</span>
                     </div>
-                    <div class="bg-slate-900 p-3 rounded-2xl text-center border border-white/5">
-                        <p class="text-[9px] text-slate-500 uppercase">Limit</p>
-                        <p id="edit-limit" class="text-xl font-bold text-sky-400">0</p>
+                    <div class="bg-slate-900 p-4 rounded-2xl text-center border border-white/5">
+                        <span class="text-[8px] text-slate-500 uppercase block mb-1">Total Limit</span>
+                        <span id="view-limit" class="text-xl font-black text-sky-400">0</span>
                     </div>
                 </div>
 
                 <div class="space-y-4">
-                    <label class="text-xs text-slate-400 font-bold">NEW LIMIT VALUE</label>
-                    <input type="number" id="new-limit-input" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl font-bold text-white focus:border-sky-500 outline-none">
-                    
-                    <div class="flex gap-2">
-                        <button onclick="quickAdd(5)" class="flex-1 bg-slate-700 py-2 rounded-lg text-xs font-bold">+5</button>
-                        <button onclick="quickAdd(10)" class="flex-1 bg-slate-700 py-2 rounded-lg text-xs font-bold">+10</button>
-                        <button onclick="quickAdd(20)" class="flex-1 bg-slate-700 py-2 rounded-lg text-xs font-bold">+20</button>
-                    </div>
-
-                    <button onclick="saveLimit()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-lg hover:bg-sky-400 transition-all uppercase">Update Limit Now</button>
-                    
-                    <button onclick="resetViews()" class="w-full bg-red-500/10 text-red-500 border border-red-500/20 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest">Reset Views to 0</button>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Modify Limit</label>
+                    <input type="number" id="input-new-limit" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 text-center text-xl font-black text-white outline-none focus:border-sky-500">
+                    <button onclick="updateUserLimit()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl shadow-lg active:scale-95 transition-all">SAVE CHANGES</button>
+                    <button onclick="resetViewsOnly()" class="w-full bg-red-500/10 text-red-500 border border-red-500/20 py-2 rounded-xl text-[10px] font-bold">RESET VIEWS</button>
                 </div>
             </div>
 
-            <div id="hint-box" class="bg-slate-800/30 border-2 border-dashed border-white/5 p-10 rounded-[35px] text-center text-slate-500">
-                <i class="fas fa-hand-pointer text-4xl mb-4 opacity-20"></i>
-                <p>Kisi bhi user par click karein limit badhane ke liye.</p>
+            <div id="hint-ui" class="glass-card p-12 rounded-[40px] text-center opacity-40">
+                <i class="fas fa-id-card text-4xl mb-4 text-slate-600"></i>
+                <p class="text-sm">Click on a user to sync email or update limits</p>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyAcmK0aCHIgLuFGRPm82GL-hEnLS8JjuKY",
             authDomain: "pdf-reader-650f5.firebaseapp.com",
@@ -95,99 +94,74 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let currentActiveUid = '';
 
-        let currentUid = '';
-
-        // --- Load All Users ---
-        function loadUsers() {
+        function initAdmin() {
             db.ref('students').on('value', (snap) => {
-                const tableBody = document.getElementById('user-table-body');
-                const userCountDisplay = document.getElementById('user-count');
-                tableBody.innerHTML = '';
-                
-                if(!snap.exists()) {
-                    tableBody.innerHTML = '<tr><td colspan="3" class="p-10 text-center text-slate-500">No users found.</td></tr>';
-                    return;
-                }
-
-                userCountDisplay.innerText = snap.numChildren();
+                const list = document.getElementById('admin-user-list');
+                document.getElementById('user-count-badge').innerText = snap.numChildren() + " Users";
+                list.innerHTML = '';
+                if(!snap.exists()) return;
 
                 snap.forEach(child => {
                     const user = child.val();
                     const uid = child.key;
-                    const email = user.email || "No Email";
+                    const email = user.email || "No Email Mapping";
                     const limit = user.limit || 5;
                     const views = user.views || 0;
 
-                    const row = document.createElement('tr');
-                    row.className = "border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all";
-                    row.onclick = () => openEditor(uid, email, limit, views);
-                    
-                    row.innerHTML = `
-                        <td class="p-4">
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-white/5 hover:bg-white/5 cursor-pointer transition-all";
+                    tr.onclick = () => openEditor(uid, email, limit, views);
+                    tr.innerHTML = `
+                        <td class="p-5">
                             <div class="font-bold text-sm text-white">${email}</div>
                             <div class="text-[9px] text-slate-500 font-mono">${uid}</div>
                         </td>
-                        <td class="p-4">
-                            <span class="bg-slate-900 px-3 py-1 rounded-full text-xs font-bold">
-                                <span class="${views >= limit ? 'text-red-500' : 'text-sky-400'}">${views}</span> / ${limit}
-                            </span>
+                        <td class="p-5 text-xs">
+                            <span class="${views >= limit ? 'text-red-500' : 'text-sky-400'} font-bold">${views}</span> / ${limit}
                         </td>
-                        <td class="p-4 text-center">
-                            <i class="fas fa-chevron-right text-slate-600 text-xs"></i>
-                        </td>
+                        <td class="p-5 text-center"><i class="fas fa-cog text-slate-600"></i></td>
                     `;
-                    tableBody.appendChild(row);
+                    list.appendChild(tr);
                 });
             });
         }
 
-        // --- Editor Logic ---
         function openEditor(uid, email, limit, views) {
-            currentUid = uid;
-            document.getElementById('hint-box').classList.add('hidden');
-            document.getElementById('editor-box').classList.remove('hidden');
-            
-            document.getElementById('edit-email').innerText = email;
-            document.getElementById('edit-uid').innerText = uid;
-            document.getElementById('edit-views').innerText = views;
-            document.getElementById('edit-limit').innerText = limit;
-            document.getElementById('new-limit-input').value = limit;
+            currentActiveUid = uid;
+            document.getElementById('hint-ui').classList.add('hidden');
+            document.getElementById('editor-ui').classList.remove('hidden');
+            document.getElementById('view-email').innerText = email;
+            document.getElementById('view-uid').innerText = "UID: " + uid;
+            document.getElementById('view-used').innerText = views;
+            document.getElementById('view-limit').innerText = limit;
+            document.getElementById('input-new-limit').value = limit;
+            document.getElementById('manual-email-input').value = (email === "No Email Mapping") ? "" : email;
         }
 
-        function quickAdd(val) {
-            const input = document.getElementById('new-limit-input');
-            input.value = parseInt(input.value) + val;
+        function saveEmailToUid() {
+            const newEmail = document.getElementById('manual-email-input').value.trim();
+            if(!newEmail.includes('@')) return alert("Enter valid email");
+            db.ref('students/' + currentActiveUid).update({ email: newEmail }).then(() => alert("Email Synced!"));
         }
 
-        function saveLimit() {
-            const newLimit = parseInt(document.getElementById('new-limit-input').value);
-            if(isNaN(newLimit)) return alert("Sahi number daalein");
-
-            db.ref('students/' + currentUid).update({ limit: newLimit })
-                .then(() => alert("Limit updated!"))
-                .catch(e => alert("Error: " + e.message));
+        function updateUserLimit() {
+            const newLim = parseInt(document.getElementById('input-new-limit').value);
+            db.ref('students/' + currentActiveUid).update({ limit: newLim }).then(() => alert("Limit Updated!"));
         }
 
-        function resetViews() {
-            if(confirm("Kya aap used views ko zero karna chahte hain?")) {
-                db.ref('students/' + currentUid).update({ views: 0 });
-            }
+        function resetViewsOnly() {
+            if(confirm("Reset views?")) db.ref('students/' + currentActiveUid).update({ views: 0 });
         }
 
-        // --- Search Function ---
-        function searchUsers() {
-            const query = document.getElementById('searchBox').value.toLowerCase();
-            const rows = document.querySelectorAll('#user-table-body tr');
-            
-            rows.forEach(row => {
-                const email = row.innerText.toLowerCase();
-                row.style.display = email.includes(query) ? '' : 'none';
+        function filterUsers() {
+            const q = document.getElementById('adminSearch').value.toLowerCase();
+            document.querySelectorAll('#admin-user-list tr').forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
             });
         }
-
-        // Start
-        loadUsers();
+        initAdmin();
     </script>
 </body>
 </html>
