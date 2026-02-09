@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -17,32 +18,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Aapka style yahan se continue hoga */
-
         :root { --primary: #38bdf8; --bg: #0f172a; }
         * { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: white; margin: 0; overflow-x: hidden; }
         
-        /* UI Elements */
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .pdf-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 20px; transition: 0.3s; }
         
-        /* Buttons */
-        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn-view { width: 100%; background: var(--primary); color: #0f172a; font-weight: 800; padding: 12px; border-radius: 12px; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; cursor: pointer; }
         .btn-view:active { transform: scale(0.95); }
-        .btn-download { width: 100%; background: transparent; color: var(--primary); border: 1px solid var(--primary); font-weight: 600; padding: 10px; border-radius: 12px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
+        .btn-download { width: 100%; background: transparent; color: var(--primary); border: 1px solid var(--primary); font-weight: 600; padding: 10px; border-radius: 12px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; cursor: pointer; }
         
-        /* Navigation */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--primary); }
         
-        /* Tabs */
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* QR Modal */
         #qr-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
         .login-logo { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--primary); padding: 5px; margin: 0 auto 20px auto; object-fit: cover; background: #1e293b; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -140,8 +134,7 @@
                 <span class="text-slate-900 font-black text-lg">Scan to Pay</span>
                 <button onclick="closeQR()" class="text-slate-400"><i class="fas fa-times-circle text-xl"></i></button>
             </div>
-            <div id="qr-container" class="bg-slate-100 p-4 rounded-3xl mb-4">
-                </div>
+            <div id="qr-container" class="bg-slate-100 p-4 rounded-3xl mb-4"></div>
             <p id="qr-amount-text" class="text-slate-900 font-bold text-xl mb-2">₹0.00</p>
             <p class="text-slate-500 text-[10px] leading-tight mb-4">Payment ke baad screenshot WhatsApp par bhejein.</p>
             <a id="upi-app-link" href="#" class="block w-full bg-sky-500 text-white py-3 rounded-xl font-bold text-sm mb-2">OPEN UPI APP</a>
@@ -152,15 +145,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker Registered!', reg))
-                    .catch(err => console.log('Service Worker Failed!', err));
-            });
-        }
-    </script>
     <script>
         // --- 1. Firebase Configuration ---
         const firebaseConfig = {
@@ -176,7 +160,7 @@
 
         let userData = { views: 0, limit: 5 };
 
-        // --- 2. Auth Logic ---
+        // --- 2. Auth Logic & Email Sync ---
         function googleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).catch(err => alert("Error: " + err.message));
@@ -197,9 +181,13 @@
                 db.ref('students/' + user.uid).on('value', (snap) => {
                     const data = snap.val();
                     if (data) {
+                        // Email fix for Admin Panel
+                        if(!data.email) {
+                            db.ref('students/' + user.uid).update({ email: user.email });
+                        }
                         userData = data;
                     } else {
-                        userData = { views: 0, limit: 5 };
+                        userData = { views: 0, limit: 5, email: user.email };
                         db.ref('students/' + user.uid).set(userData);
                     }
                     document.getElementById('used-count').innerText = userData.views || 0;
@@ -218,7 +206,7 @@
                 const grid = document.getElementById('pdf-grid');
                 grid.innerHTML = '';
                 if(!snap.exists()) {
-                    grid.innerHTML = '<p class="text-slate-500 text-center col-span-full">No PDFs available.</p>';
+                    grid.innerHTML = '<p class="text-slate-500 text-center col-span-full py-10">No PDFs available.</p>';
                     return;
                 }
                 snap.forEach(child => {
@@ -312,17 +300,15 @@
                 text: 'Download premium notes and PDFs easily!',
                 url: window.location.href
             };
-
             if (navigator.share) {
                 navigator.share(shareData).catch((err) => console.log('Share error', err));
             } else {
-                // Fallback for browsers that don't support native share
                 navigator.clipboard.writeText(window.location.href);
                 alert("App link copied to clipboard!");
             }
         }
 
-        // --- 6. Navigation ---
+        // --- 6. Navigation Logic ---
         function switchTab(tabId, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -347,6 +333,15 @@
                 defPrompt.prompt();
                 defPrompt.userChoice.then(() => document.getElementById('install-btn').classList.add('hidden'));
             }
+        }
+    </script>
+<script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Registered!'))
+                    .catch(err => console.log('Service Worker Failed!'));
+            });
         }
     </script>
 </body>
