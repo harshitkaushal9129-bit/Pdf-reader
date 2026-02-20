@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://harshitkaushal9129-bit.github.io/Pdf-reader/sitemap.xml
