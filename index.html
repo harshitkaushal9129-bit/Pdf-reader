@@ -182,7 +182,6 @@
                 db.ref('students/' + user.uid).on('value', (snap) => {
                     const data = snap.val();
                     if (data) {
-                        // Email fix for Admin Panel
                         if(!data.email) {
                             db.ref('students/' + user.uid).update({ email: user.email });
                         }
@@ -228,6 +227,7 @@
             });
         }
 
+        // Updated HandleAction for better viewing
         function handleAction(base64, mode, fileName = "Notes") {
             const currentViews = userData.views || 0;
             const currentLimit = userData.limit || 5;
@@ -238,17 +238,17 @@
                 return;
             }
 
-            db.ref('students/' + auth.currentUser.uid).update({ views: currentViews + 1 });
-
             try {
                 const blob = base64ToBlob(base64);
                 const url = URL.createObjectURL(blob);
+
                 if (mode === 'view') {
-                    const win = window.open();
+                    // Open in new tab directly using the Blob URL
+                    const win = window.open(url, '_blank');
                     if(win) {
-                        win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+                        db.ref('students/' + auth.currentUser.uid).update({ views: currentViews + 1 });
                     } else {
-                        alert("Popup blocked! Please allow popups.");
+                        alert("Popup blocked! Please allow popups to view PDF.");
                     }
                 } else {
                     const link = document.createElement('a');
@@ -257,19 +257,36 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    db.ref('students/' + auth.currentUser.uid).update({ views: currentViews + 1 });
                 }
+                
+                // Cleanup URL after some time to save memory
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+
             } catch(e) {
-                alert("File error: Base64 format incorrect.");
+                console.error(e);
+                alert("File error: Base64 data is corrupted or invalid.");
             }
         }
 
+        // Improved Base64 to Blob conversion
         function base64ToBlob(base64) {
-            const parts = base64.split(';base64,');
-            const contentType = parts[0].split(':')[1];
-            const raw = window.atob(parts[1]);
-            const uInt8Array = new Uint8Array(raw.length);
-            for (let i = 0; i < raw.length; ++i) uInt8Array[i] = raw.charCodeAt(i);
-            return new Blob([uInt8Array], { type: contentType });
+            let contentType = 'application/pdf';
+            let rawData = base64;
+
+            if (base64.includes(';base64,')) {
+                const parts = base64.split(';base64,');
+                contentType = parts[0].split(':')[1];
+                rawData = parts[1];
+            }
+
+            const byteCharacters = atob(rawData);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: contentType });
         }
 
         // --- 4. Payment System ---
@@ -336,7 +353,7 @@
             }
         }
     </script>
-<script>
+    <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
