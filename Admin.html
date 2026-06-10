@@ -17,87 +17,110 @@
         .btn-delete-zone { border-top: 1px solid rgba(239, 68, 68, 0.2); margin-top: 1rem; padding-top: 1rem; }
     </style>
 </head>
-<body class="bg-[#0f172a] text-white min-h-screen pb-10">
+<body class="bg-[#0f172a] text-white min-h-screen pb-10 temporary-lock">
 
-    <nav class="bg-slate-900/80 sticky top-0 z-50 border-b border-white/5 p-5 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-black text-sky-400 italic">ADMIN <span class="text-white font-normal">CONTROL</span></h1>
+    <div id="auth-overlay" class="fixed inset-0 z-[100] bg-[#0f172a] flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full p-8 rounded-[40px] border-t-4 border-sky-500 shadow-2xl text-center">
+            <div class="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-sky-500/20 shadow-lg shadow-sky-500/10">
+                <i class="fas fa-lock text-3xl text-sky-400 animate-pulse"></i>
             </div>
-            <div class="bg-sky-500/10 border border-sky-500/20 px-5 py-2 rounded-full">
-                <span id="user-count" class="font-black text-sky-400">0</span> <span class="text-[10px] uppercase font-bold ml-1 text-slate-400">Users Active</span>
+            <h2 class="text-2xl font-black text-white italic tracking-wide uppercase mb-2">Master Access</h2>
+            <p class="text-xs text-slate-400 mb-6">Enter administrative credentials to unlock PDF Vault Pro</p>
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    <input type="password" id="admin-password" placeholder="••••••" class="w-full bg-slate-900/90 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-center text-xl font-black text-sky-400 tracking-widest focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all">
+                </div>
+                <button onclick="verifyAdminPassword()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl hover:bg-sky-400 active:scale-95 transition-all uppercase tracking-wider text-sm">
+                    Verify Access <i class="fas fa-shield-alt ml-1"></i>
+                </button>
+                <p id="auth-error" class="text-xs text-red-500 font-bold hidden animate-bounce mt-2"><i class="fas fa-exclamation-circle mr-1"></i> Ghalat Password! Dobara koshish karein.</p>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <div class="max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <div class="lg:col-span-2 space-y-6">
-            <div class="relative">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                <input type="text" id="adminSearch" onkeyup="filterUsers()" placeholder="Search by email or UID..." class="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-sky-500 transition-all">
+    <div id="main-admin-content" class="hidden">
+        <nav class="bg-slate-900/80 sticky top-0 z-50 border-b border-white/5 p-5 backdrop-blur-md">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-black text-sky-400 italic">ADMIN <span class="text-white font-normal">CONTROL</span></h1>
+                </div>
+                <div class="bg-sky-500/10 border border-sky-500/20 px-5 py-2 rounded-full">
+                    <span id="user-count" class="font-black text-sky-400">0</span> <span class="text-[10px] uppercase font-bold ml-1 text-slate-400">Users Active</span>
+                </div>
             </div>
+        </nav>
 
-            <div class="glass-card rounded-[35px] overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-900/50 border-b border-white/5">
-                        <tr>
-                            <th class="p-5 text-[10px] uppercase tracking-widest text-slate-400">User Details</th>
-                            <th class="p-5 text-[10px] uppercase tracking-widest text-slate-400">Used / Limit</th>
-                            <th class="p-5 text-center text-[10px] uppercase tracking-widest text-slate-400">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-user-list">
+        <div class="max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    <input type="text" id="adminSearch" onkeyup="filterUsers()" placeholder="Search by email or UID..." class="w-full bg-slate-800/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:border-sky-500 transition-all">
+                </div>
+
+                <div class="glass-card rounded-[35px] overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900/50 border-b border-white/5">
+                            <tr>
+                                <th class="p-5 text-[10px] uppercase tracking-widest text-slate-400">User Details</th>
+                                <th class="p-5 text-[10px] uppercase tracking-widest text-slate-400">Used / Limit</th>
+                                <th class="p-5 text-center text-[10px] uppercase tracking-widest text-slate-400">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-user-list">
                         </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="lg:col-span-1">
-            <div id="editor-ui" class="hidden glass-card p-8 rounded-[40px] sticky top-32 border-t-4 border-sky-500 shadow-2xl">
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-sky-500/20">
-                        <i class="fas fa-user-shield text-3xl text-sky-400"></i>
-                    </div>
-                    <h2 id="view-email" class="font-black text-lg truncate px-2 text-white">---</h2>
-                    <p id="view-uid" class="text-[9px] text-slate-500 font-mono mt-1"></p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-slate-900/50 p-4 rounded-3xl border border-white/5 text-center">
-                        <span class="text-[9px] text-slate-500 uppercase block mb-1">Used Views</span>
-                        <span id="view-used" class="text-2xl font-black">0</span>
-                    </div>
-                    <div class="bg-slate-900/50 p-4 rounded-3xl border border-white/5 text-center">
-                        <span class="text-[9px] text-slate-500 uppercase block mb-1">Total Limit</span>
-                        <span id="view-limit" class="text-2xl font-black text-sky-400">0</span>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update PDF Limit</label>
-                    <div class="flex gap-2">
-                        <button onclick="addLimitValue(5)" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold transition-all border border-white/5">+5</button>
-                        <button onclick="addLimitValue(10)" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold transition-all border border-white/5">+10</button>
-                    </div>
-                    <input type="number" id="input-new-limit" class="w-full bg-slate-900 border border-slate-700 rounded-2xl py-4 text-center text-xl font-black text-sky-400 focus:outline-none focus:border-sky-500" placeholder="New Limit">
-                    <button onclick="updateUserInDB()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl hover:bg-sky-400 active:scale-95 transition-all uppercase tracking-tighter">Save Changes</button>
-                    
-                    <div class="pt-4 border-t border-white/5">
-                        <button onclick="resetViewsOnly()" class="w-full bg-slate-800/50 text-slate-400 border border-white/5 py-3 rounded-xl text-[10px] font-black uppercase hover:bg-slate-700 transition-all">Reset Used Views to 0</button>
-                    </div>
-
-                    <div class="btn-delete-zone">
-                        <button onclick="deleteUserPermanently()" class="w-full bg-red-500/10 text-red-500 border border-red-500/20 py-3 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">
-                            <i class="fas fa-trash-alt mr-2"></i> Delete User Forever
-                        </button>
-                    </div>
+                    </table>
                 </div>
             </div>
 
-            <div id="hint-ui" class="glass-card p-12 rounded-[40px] text-center border-2 border-dashed border-white/10 opacity-50">
-                <i class="fas fa-mouse-pointer text-4xl mb-4 text-slate-600"></i>
-                <p class="text-slate-500 text-sm font-medium leading-relaxed">Kisi bhi user par click karein unki details manage karne ke liye.</p>
+            <div class="lg:col-span-1">
+                <div id="editor-ui" class="hidden glass-card p-8 rounded-[40px] sticky top-32 border-t-4 border-sky-500 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-sky-500/20">
+                            <i class="fas fa-user-shield text-3xl text-sky-400"></i>
+                        </div>
+                        <h2 id="view-email" class="font-black text-lg truncate px-2 text-white">---</h2>
+                        <p id="view-uid" class="text-[9px] text-slate-500 font-mono mt-1"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-slate-900/50 p-4 rounded-3xl border border-white/5 text-center">
+                            <span class="text-[9px] text-slate-500 uppercase block mb-1">Used Views</span>
+                            <span id="view-used" class="text-2xl font-black">0</span>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-3xl border border-white/5 text-center">
+                            <span class="text-[9px] text-slate-500 uppercase block mb-1">Total Limit</span>
+                            <span id="view-limit" class="text-2xl font-black text-sky-400">0</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update PDF Limit</label>
+                        <div class="flex gap-2">
+                            <button onclick="addLimitValue(5)" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold transition-all border border-white/5">+5</button>
+                            <button onclick="addLimitValue(10)" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold transition-all border border-white/5">+10</button>
+                        </div>
+                        <input type="number" id="input-new-limit" class="w-full bg-slate-900 border border-slate-700 rounded-2xl py-4 text-center text-xl font-black text-sky-400 focus:outline-none focus:border-sky-500" placeholder="New Limit">
+                        <button onclick="updateUserInDB()" class="w-full bg-sky-500 text-slate-900 font-black py-4 rounded-2xl shadow-xl hover:bg-sky-400 active:scale-95 transition-all uppercase tracking-tighter">Save Changes</button>
+                        
+                        <div class="pt-4 border-t border-white/5">
+                            <button onclick="resetViewsOnly()" class="w-full bg-slate-800/50 text-slate-400 border border-white/5 py-3 rounded-xl text-[10px] font-black uppercase hover:bg-slate-700 transition-all">Reset Used Views to 0</button>
+                        </div>
+
+                        <div class="btn-delete-zone">
+                            <button onclick="deleteUserPermanently()" class="w-full bg-red-500/10 text-red-500 border border-red-500/20 py-3 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">
+                                <i class="fas fa-trash-alt mr-2"></i> Delete User Forever
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="hint-ui" class="glass-card p-12 rounded-[40px] text-center border-2 border-dashed border-white/10 opacity-50">
+                    <i class="fas fa-mouse-pointer text-4xl mb-4 text-slate-600"></i>
+                    <p class="text-slate-500 text-sm font-medium leading-relaxed">Kisi bhi user par click karein unki details manage karne ke liye.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -115,6 +138,32 @@
         const db = firebase.database();
 
         let currentActiveUid = '';
+
+        // --- PASSWORD VERIFICATION LOGIC ---
+        function verifyAdminPassword() {
+            const enteredPassword = document.getElementById('admin-password').value;
+            const errorLabel = document.getElementById('auth-error');
+            
+            if (enteredPassword === '912919') {
+                // Hide overlay and reveal original panel
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('main-admin-content').classList.remove('hidden');
+                
+                // Initialize original app features exactly as before
+                initAdmin();
+            } else {
+                errorLabel.classList.remove('hidden');
+                document.getElementById('admin-password').value = '';
+                document.getElementById('admin-password').focus();
+            }
+        }
+
+        // Add 'Enter key' support for password input
+        document.getElementById('admin-password').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                verifyAdminPassword();
+            }
+        });
 
         // --- 2. Load Users List ---
         function initAdmin() {
@@ -223,8 +272,7 @@
             });
         }
 
-        // Start App
-        initAdmin();
+        // Note: initAdmin() is now called inside verifyAdminPassword() to prevent loading data early.
     </script>
 </body>
 </html>
